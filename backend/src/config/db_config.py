@@ -1,5 +1,5 @@
 db_config = {
-    "host": "localhost",
+    "host": "db",
     "dbname": "unicaf-db",
     "user": "admin",
     "password": "pass"

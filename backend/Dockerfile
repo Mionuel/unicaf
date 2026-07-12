@@ -1,7 +1,7 @@
 FROM python:3.14-alpine
 
 # create this directory and cd into it
-WORKDIR /back-src
+WORKDIR /backend
 
 # install poetry
 RUN pip install poetry==2.4.1
@@ -14,4 +14,4 @@ RUN poetry install
 COPY . .
 
 # venv inside a container lesss go
-CMD ["poetry", "run", "fastapi", "run", "src/app.py", "--port", "8000"]
+CMD ["poetry", "run", "fastapi", "dev", "src/app.py", "--host", "0.0.0.0", "--port", "8000"]
