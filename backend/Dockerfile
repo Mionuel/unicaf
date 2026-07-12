@@ -14,4 +14,4 @@ RUN poetry install
 COPY . .
 
 # venv inside a container lesss go
-CMD ["poetry", "run", "fastapi", "run", "main.py", "--port", "8000"]
+CMD ["poetry", "run", "fastapi", "run", "src/app.py", "--port", "8000"]
