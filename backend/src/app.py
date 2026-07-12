@@ -14,4 +14,4 @@ def home():
 @app.get("/version")
 def db_version(conn=Depends(get_db)):
     version = conn.execute("SELECT version()").fetchone()
-    return {"postgres_version": version[0]}
+    return {"postgres_version": version}
