@@ -2,7 +2,7 @@ from typing import List
 
 from fastapi import APIRouter, Depends
 
-from db import get_db
+from config.db_config import get_db
 
 from api.view.person_view import new_person
 from api.view.person_view import all_people
@@ -25,5 +25,5 @@ def create_person(person: PersonCreate, db=Depends(get_db)):
     """Creates a new person"""
     db.execute(
         new_person, 
-        (person.name, person.initial_credit)
+        (person.name, person.init_credit, person.init_bonus)
     )

@@ -1,0 +1,54 @@
+import psycopg
+from config.db_config import db_config
+
+def seed_database():
+    with psycopg.connect(**db_config) as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS "Person" (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                credit DOUBLE PRECISION DEFAULT 0.0,
+                bonus_points INTEGER DEFAULT 0
+            )
+        """)
+
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS "Table" (
+                id SERIAL PRIMARY KEY,
+                label VARCHAR(255)
+            )
+        """)
+
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS "Seat" (
+                id SERIAL PRIMARY KEY,
+                table_id INTEGER NOT NULL REFERENCES "Table"(id),
+                status VARCHAR(20) NOT NULL DEFAULT 'free'
+                    CHECK (status IN ('free', 'reserved', 'occupied')),
+                person_id INTEGER REFERENCES "Person"(id),
+                expires_at TIMESTAMPTZ
+            )
+        """)
+
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS "QueueEntry" (
+                id SERIAL PRIMARY KEY,
+                person_id INTEGER NOT NULL REFERENCES "Person"(id),
+                joined_at TIMESTAMPTZ NOT NULL DEFAULT now()
+            )
+        """)
+
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS "Order" (
+                id SERIAL PRIMARY KEY,
+                person_id INTEGER NOT NULL REFERENCES "Person"(id),
+                seat_id INTEGER REFERENCES "Seat"(id),
+                created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+                cost DOUBLE PRECISION NOT NULL,
+                bonus_snack BOOLEAN NOT NULL DEFAULT false
+            )
+        """)
+
+
+if __name__ == "__main__":
+    seed_database()
