@@ -13,3 +13,9 @@ get_person_by_id = """
     SELECT * FROM "Person" 
     WHERE id = %s;
 """
+
+update_person = """
+    UPDATE "Person" 
+    SET credit = credit - %s, bonus_points = %s 
+    WHERE id = %s;
+"""

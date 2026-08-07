@@ -3,12 +3,7 @@ from datetime import datetime
 from api.model.seat_model import SeatStatus
 
 seat_by_id = """
-    SELECT 
-        id, 
-        table_id, 
-        status, 
-        person_id, 
-        expires_at
+    SELECT *
     FROM "Seat"
     WHERE id = %s;
 """
@@ -56,3 +51,12 @@ def filter_seats(
         params.append(expires_after)
 
     return query, params
+
+occupy_seat_sql = """
+    UPDATE "Seat"
+    SET status = 'occupied',
+        person_id = %s,
+        expires_at = now() + make_interval(secs => %s)
+    WHERE id = %s
+    RETURNING id, table_id, status, person_id, expires_at;
+"""
