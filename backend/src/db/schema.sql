@@ -25,11 +25,9 @@ CREATE TABLE IF NOT EXISTS "QueueEntry" (
     joined_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS "Order" (
+CREATE TABLE IF NOT EXISTS "Reservation" (
     id SERIAL PRIMARY KEY,
+    seat_id INTEGER NOT NULL UNIQUE REFERENCES "Seat"(id),
     person_id INTEGER NOT NULL REFERENCES "Person"(id),
-    seat_id INTEGER REFERENCES "Seat"(id),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    cost DOUBLE PRECISION NOT NULL,
-    bonus_snack BOOLEAN NOT NULL DEFAULT false
+    expires_at TIMESTAMPTZ NOT NULL
 );

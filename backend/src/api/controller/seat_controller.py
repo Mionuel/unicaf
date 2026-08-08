@@ -98,8 +98,9 @@ def occupy_seat(payload: SeatOccupyPayload, seat_id: int, db=Depends(get_db)):
             (payload.person_id, occupy_seconds, seat_id),
         ).fetchone()
 
-        # Saves the order into the Order table
-        insert_order(payload.person_id, seat.id, bonus_snack, db)
+        # TODO: decide if the Order table is useful
+        # # Saves the order into the Order table
+        # insert_order(payload.person_id, seat.id, bonus_snack, db)
 
         # The changes will take effect only if no errors occured, otherwise everything will be rolled back
         db.commit()
@@ -124,3 +125,5 @@ def free_seat(seat_id: int, db=Depends(get_db)):
 
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+# Reserve a seat

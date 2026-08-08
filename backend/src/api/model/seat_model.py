@@ -4,7 +4,6 @@ from enum import Enum
 
 class SeatStatus(str, Enum):
     free = "free"
-    reserved = "reserved"
     occupied = "occupied"
 
 class SeatResponse(BaseModel):
