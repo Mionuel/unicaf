@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from api.controller.seat_controller import lookup_seat
 from api.model.reservation_model import ReservationResponse
 from api.model.seat_model import SeatStatus
-from api.view.reservation_view import fetch_reservation_by_seat, insert_reservation
+from api.view.reservation_view import fetch_reservation_by_seat, insert_reservation, delete_reservation_by_seat
 
 from config.db_config import get_db
 
@@ -47,6 +47,20 @@ def reserve_seat(seat_id: int, person_id: int, db=Depends(get_db)):
     result = db.execute(
         insert_reservation, 
         (seat_id, person_id)
+    ).fetchone()
+
+    return result
+
+# Delete a reservation
+@router.delete("/{seat_id}", response_model=ReservationResponse | None)
+def delete_reservation(seat_id: int, db=Depends(get_db)):
+    """
+        Deletes a reservation based on the seat's id.
+        On success return the deleted reservation.
+        Returns NULL on failure.
+    """
+    result = db.execute(
+        delete_reservation_by_seat, [seat_id]
     ).fetchone()
 
     return result
