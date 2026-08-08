@@ -70,7 +70,7 @@ def lookup_seat(seat_id: int, db) -> SeatResponse:
     return SeatResponse(**row)
 
 # Occupy seat
-@router.post("/occupy/{seat_id}", response_model=SeatResponse)
+@router.put("/occupy/{seat_id}", response_model=SeatResponse)
 def occupy_seat(payload: SeatOccupyPayload, seat_id: int, db=Depends(get_db)):
     """ 
         Updates the seat's status to occupied, inserts the occupying person's id 
@@ -93,17 +93,16 @@ def occupy_seat(payload: SeatOccupyPayload, seat_id: int, db=Depends(get_db)):
         if bonus_snack:
             occupy_seconds += OCCUPY_SECONDS_SNACK
 
+        # TODO: check if the seat is not reserved
+
         result = db.execute(
             occupy_seat_sql,
-            (payload.person_id, occupy_seconds, seat_id),
+            (payload.person_id, occupy_seconds, seat.id),
         ).fetchone()
 
         # TODO: decide if the Order table is useful
         # # Saves the order into the Order table
         # insert_order(payload.person_id, seat.id, bonus_snack, db)
-
-        # The changes will take effect only if no errors occured, otherwise everything will be rolled back
-        db.commit()
 
         return result
 
@@ -111,7 +110,7 @@ def occupy_seat(payload: SeatOccupyPayload, seat_id: int, db=Depends(get_db)):
         raise HTTPException(status_code=400, detail=str(e))
 
 # Free seat up
-@router.post("/free/{seat_id}", response_model=SeatResponse)
+@router.put("/free/{seat_id}", response_model=SeatResponse)
 def free_seat(seat_id: int, db=Depends(get_db)):
     try:
         seat = lookup_seat(seat_id, db)
