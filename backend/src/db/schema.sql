@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS "Seat" (
     id SERIAL PRIMARY KEY,
     table_id INTEGER NOT NULL REFERENCES "Table"(id),
     status VARCHAR(20) NOT NULL DEFAULT 'free'
-        CHECK (status IN ('free', 'reserved', 'occupied')),
+        CHECK (status IN ('free', 'occupied')),
     person_id INTEGER REFERENCES "Person"(id),
     expires_at TIMESTAMPTZ
 );
@@ -28,6 +28,5 @@ CREATE TABLE IF NOT EXISTS "QueueEntry" (
 CREATE TABLE IF NOT EXISTS "Reservation" (
     id SERIAL PRIMARY KEY,
     seat_id INTEGER NOT NULL UNIQUE REFERENCES "Seat"(id),
-    person_id INTEGER NOT NULL REFERENCES "Person"(id),
-    expires_at TIMESTAMPTZ NOT NULL
+    person_id INTEGER NOT NULL REFERENCES "Person"(id)
 );

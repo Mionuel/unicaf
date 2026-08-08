@@ -75,6 +75,7 @@ def occupy_seat(payload: SeatOccupyPayload, seat_id: int, db=Depends(get_db)):
     """ 
         Updates the seat's status to occupied, inserts the occupying person's id 
         and sets the expiration date.
+        Also handles the bonus snacks and the duration of occupation.
         On Success returns the updated seat's data.
     """
     try:
@@ -93,16 +94,10 @@ def occupy_seat(payload: SeatOccupyPayload, seat_id: int, db=Depends(get_db)):
         if bonus_snack:
             occupy_seconds += OCCUPY_SECONDS_SNACK
 
-        # TODO: check if the seat is not reserved
-
         result = db.execute(
             occupy_seat_sql,
             (payload.person_id, occupy_seconds, seat.id),
         ).fetchone()
-
-        # TODO: decide if the Order table is useful
-        # # Saves the order into the Order table
-        # insert_order(payload.person_id, seat.id, bonus_snack, db)
 
         return result
 
@@ -112,6 +107,11 @@ def occupy_seat(payload: SeatOccupyPayload, seat_id: int, db=Depends(get_db)):
 # Free seat up
 @router.put("/free/{seat_id}", response_model=SeatResponse)
 def free_seat(seat_id: int, db=Depends(get_db)):
+    """
+        Frees an occupied seat by returning its status to free. 
+        Resets the person_id and expires_at to NULL.
+        On success return the updated seat.
+    """
     try:
         seat = lookup_seat(seat_id, db)
 
@@ -124,5 +124,3 @@ def free_seat(seat_id: int, db=Depends(get_db)):
 
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-
-# Reserve a seat
