@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from api.controller.order_controller import ORDER_COST, insert_order
 from api.controller.person_controller import subtract_credits
 from api.model.seat_model import SeatOccupyPayload, SeatResponse, SeatStatus
-from api.view.seat_view import seat_by_id, filter_seats, occupy_seat_sql
+from api.view.seat_view import seat_by_id, filter_seats, occupy_seat_sql, free_seat_sql
 
 from config.db_config import get_db
 
@@ -110,3 +110,17 @@ def occupy_seat(payload: SeatOccupyPayload, seat_id: int, db=Depends(get_db)):
         raise HTTPException(status_code=400, detail=str(e))
 
 # Free seat up
+@router.post("/free/{seat_id}", response_model=SeatResponse)
+def free_seat(seat_id: int, db=Depends(get_db)):
+    try:
+        seat = lookup_seat(seat_id, db)
+
+        result = db.execute(
+            free_seat_sql,
+            [seat.id],
+        ).fetchone()
+
+        return result
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))

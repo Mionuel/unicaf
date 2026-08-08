@@ -60,3 +60,12 @@ occupy_seat_sql = """
     WHERE id = %s
     RETURNING id, table_id, status, person_id, expires_at;
 """
+
+free_seat_sql = """
+    UPDATE "Seat"
+    SET status = 'free',
+        person_id = NULL,
+        expires_at = NULL
+    WHERE id = %s
+    RETURNING id, table_id, status, person_id, expires_at
+"""
