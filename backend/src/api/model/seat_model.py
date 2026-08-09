@@ -12,8 +12,3 @@ class SeatResponse(BaseModel):
     status: SeatStatus
     person_id: int | None = None
     expires_at: datetime | None = None
-
-class SeatOccupyPayload(BaseModel):
-    new_satus: SeatStatus
-    person_id: int
-    expires_at: datetime | None = None
