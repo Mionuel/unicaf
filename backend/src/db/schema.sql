@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS "Seat" (
 
 CREATE TABLE IF NOT EXISTS "QueueEntry" (
     id SERIAL PRIMARY KEY,
-    person_id INTEGER NOT NULL REFERENCES "Person"(id),
+    person_id INTEGER NOT NULL UNIQUE REFERENCES "Person"(id),
     joined_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

@@ -1,5 +1,6 @@
 from typing import List
 
+from api.controller.queue_controller import dequeue
 from api.controller.reservation_controller import delete_reservation, fetch_reservation
 from api.controller.seat_controller import occupy_seat_now
 from api.model.reservation_model import ReservationResponse
@@ -40,8 +41,13 @@ def update_seat(seat_id:int, db) -> None:
 
     # if there was no reservation for this seat => dequeue the first person and seat them
     else:
-        # dequeue
-        # person_id
+        queue_entry = dequeue(db)
+
+        # the queue is empty
+        if queue_entry is None:
+            return
+
+        person_id = queue_entry.person_id
         pass
 
     # If the queue is empty / there are no reservations => return

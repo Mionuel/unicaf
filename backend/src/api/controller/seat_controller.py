@@ -4,7 +4,7 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from api.controller.order_controller import ORDER_COST, insert_order
+from api.controller.order_controller import ORDER_COST
 from api.controller.person_controller import subtract_credits
 from api.model.seat_model import SeatResponse, SeatStatus
 from api.view.seat_view import seat_by_id, filter_seats, occupy_seat_sql, free_seat_sql
@@ -122,5 +122,14 @@ def free_seat(seat_id: int, db=Depends(get_db)):
 
         return result
 
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/update", response_model=List[SeatResponse] | None)
+def update(db=Depends(get_db)):
+    from api.controller.state_controller import update_all_seats
+
+    try:
+        return update_all_seats(db)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
