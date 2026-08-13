@@ -80,6 +80,7 @@ def occupy_seat_now(seat_id: int, person_id: int, db) -> SeatResponse:
     bonus_snack = subtract_credits(person_id, ORDER_COST, db)
 
     occupy_seconds = OCCUPY_SECONDS_MIN + random.randint(0, OCCUPY_SECONDS_VARIANCE)
+    
     if bonus_snack:
         occupy_seconds += OCCUPY_SECONDS_SNACK
 

@@ -41,8 +41,8 @@ def update_seat(seat_id:int, db) -> None:
 
     person_id = None
 
-    # TODO: finish dequeue and occupy_now here
-    # if the seat was reserved => delete reservation and seat the person immediately
+    # if there was a reservation => get person_id from the reservation 
+    # so that the person can immediately occupy the seat in question
     if reservation is not None:
         delete_reservation(reservation.id, db)
         person_id = reservation.person_id
@@ -61,8 +61,17 @@ def update_seat(seat_id:int, db) -> None:
     # If the queue is empty / there are no reservations => return
     if person_id is None:
         return
+
+    # ensures that if the person cannot be seated they get removed from the queue
+    # instead of occupying it indefinitely
+    db.commit()
     
-    occupy_seat_now(seat_id, person_id, db)
+    try:
+        occupy_seat_now(seat_id, person_id, db)
+    except ValueError as e:
+        print(str(e))
+        # The person cannot be seated (not enough credits, seat taken, etc.) => try the next one
+        update_seat(seat_id, db)
 
 # Looks up expired seats and calls update_seat on them
 def update_all_seats(db) -> List[SeatResponse] | None:
