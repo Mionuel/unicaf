@@ -1,0 +1,65 @@
+from typing import List
+
+from api.controller.reservation_controller import delete_reservation, fetch_reservation
+from api.controller.seat_controller import occupy_seat_now
+from api.model.reservation_model import ReservationResponse
+from api.model.seat_model import SeatResponse
+
+from api.view.seat_view import free_expired_seats_sql
+
+def free_expired_seats(db) -> List[SeatResponse] | None:
+    rows = db.execute(
+        free_expired_seats_sql
+    ).fetchall()
+
+    if not rows:
+        return None
+
+    # converts dicts to SeatResponse objects
+    return [SeatResponse(**row) for row in rows]
+
+# Updates the seat's state following one of 2 cases:
+# 1. if the seat has a reservation on it 
+#   => immediately let the person, who did the reservation, occupy that seat
+#   => delete the reservation
+#   => update seat's state to occupied (call the occupy_now function on it)
+
+# 2. if the seat has no reservations 
+#   => dequeue (a function) the first person from the queue
+#   => call occupy now on that seat
+def update_seat(seat_id:int, db) -> None:
+    reservation = fetch_reservation(seat_id, db)
+
+    person_id = None
+
+    # TODO: finish dequeue and occupy_now here
+    # if the seat was reserved => delete reservation and seat the person immediately
+    if reservation is not None:
+        delete_reservation(reservation.id, db)
+        person_id = reservation.person_id
+
+    # if there was no reservation for this seat => dequeue the first person and seat them
+    else:
+        # dequeue
+        # person_id
+        pass
+
+    # If the queue is empty / there are no reservations => return
+    if person_id is None:
+        return
+    
+    occupy_seat_now(seat_id, person_id, db)
+
+# Looks up expired seats and calls update_seat on them
+def update_all_seats(db) -> List[SeatResponse] | None:
+    expired_seats = free_expired_seats(db)
+
+    # no expired seats => return
+    if expired_seats is None:
+        return
+
+    # update the state of each seat according to 
+    for seat in expired_seats:
+        update_seat(seat.id, db)
+
+    return expired_seats

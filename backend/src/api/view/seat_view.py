@@ -69,3 +69,10 @@ free_seat_sql = """
     WHERE id = %s
     RETURNING id, table_id, status, person_id, expires_at
 """
+
+free_expired_seats_sql = """
+    UPDATE "Seat"
+    SET status = 'free', person_id = NULL, expires_at = NULL
+    WHERE status = 'occupied' AND expires_at < now()
+    RETURNING id, table_id, status, person_id, expires_at;
+"""

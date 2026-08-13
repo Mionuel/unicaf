@@ -8,7 +8,7 @@ insert_reservation = """
     RETURNING id, seat_id, person_id;
 """
 
-delete_reservation_by_seat = """
-    DELETE FROM "Reservation" WHERE seat_id = %s
+delete_reservation_by_id = """
+    DELETE FROM "Reservation" WHERE id = %s
     RETURNING id, seat_id, person_id;
 """

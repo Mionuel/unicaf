@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from api.controller.seat_controller import lookup_seat
 from api.model.reservation_model import ReservationResponse
 from api.model.seat_model import SeatStatus
-from api.view.reservation_view import fetch_reservation_by_seat, insert_reservation, delete_reservation_by_seat
+from api.view.reservation_view import fetch_reservation_by_seat, insert_reservation, delete_reservation_by_id
 
 from config.db_config import get_db
 
@@ -13,16 +13,19 @@ router = APIRouter(
 )
 
 # A helper function that checks if the seat with seat_id is already reserved
-def is_reserved(seat_id: int, db) -> bool:
+# On success returns reservation's id else - None
+def fetch_reservation(seat_id: int, db) -> ReservationResponse | None:
     row = db.execute(
         fetch_reservation_by_seat, 
         [seat_id]
     ).fetchone()
 
     if row is None:
-        return False
+        return None
 
-    return True
+    reservation = ReservationResponse(**row)
+
+    return reservation
 
 # Reserve a seat
 @router.post("/{seat_id}", response_model=ReservationResponse)
@@ -41,7 +44,10 @@ def reserve_seat(seat_id: int, person_id: int, db=Depends(get_db)):
     if seat.status is SeatStatus.free:
         raise HTTPException(status_code=400, detail="Cannot reserve a free seat")
 
-    if is_reserved(seat_id, db):
+    # if there was a reservation already => error
+    reservation = fetch_reservation(seat_id, db)
+
+    if reservation is not None:
         raise HTTPException(status_code=409, detail="Seat is already reserved")
 
     result = db.execute(
@@ -52,15 +58,9 @@ def reserve_seat(seat_id: int, person_id: int, db=Depends(get_db)):
     return result
 
 # Delete a reservation
-@router.delete("/{seat_id}", response_model=ReservationResponse | None)
-def delete_reservation(seat_id: int, db=Depends(get_db)):
-    """
-        Deletes a reservation based on the seat's id.
-        On success return the deleted reservation.
-        Returns NULL on failure.
-    """
+def delete_reservation(reservation_id: int, db=Depends(get_db)):
     result = db.execute(
-        delete_reservation_by_seat, [seat_id]
+        delete_reservation_by_id, [reservation_id]
     ).fetchone()
 
     return result
