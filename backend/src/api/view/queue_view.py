@@ -13,3 +13,9 @@ dequeue_sql = """
     )
     RETURNING id, person_id, joined_at;
 """
+
+queue_entries_sql = """
+    SELECT id, person_id, joined_at
+    FROM "QueueEntry"
+    ORDER BY joined_at;
+"""

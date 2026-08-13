@@ -1,12 +1,20 @@
 from typing import List
 
+from fastapi import APIRouter, Depends, HTTPException
+
 from api.controller.queue_controller import dequeue
 from api.controller.reservation_controller import delete_reservation, fetch_reservation
 from api.controller.seat_controller import occupy_seat_now
-from api.model.reservation_model import ReservationResponse
 from api.model.seat_model import SeatResponse
 
 from api.view.seat_view import free_expired_seats_sql
+from config.db_config import get_db
+
+router = APIRouter(
+    prefix="/state",
+    tags=["State"]
+)
+
 
 def free_expired_seats(db) -> List[SeatResponse] | None:
     rows = db.execute(
@@ -69,3 +77,10 @@ def update_all_seats(db) -> List[SeatResponse] | None:
         update_seat(seat.id, db)
 
     return expired_seats
+
+@router.post("/", response_model=List[SeatResponse] | None)
+def update(db=Depends(get_db)):
+    try:
+        return update_all_seats(db)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))

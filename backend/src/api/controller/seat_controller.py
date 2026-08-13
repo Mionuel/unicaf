@@ -124,12 +124,3 @@ def free_seat(seat_id: int, db=Depends(get_db)):
 
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-
-@router.post("/update", response_model=List[SeatResponse] | None)
-def update(db=Depends(get_db)):
-    from api.controller.state_controller import update_all_seats
-
-    try:
-        return update_all_seats(db)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
