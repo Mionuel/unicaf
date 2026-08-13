@@ -4,7 +4,6 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from api.controller.order_controller import ORDER_COST
 from api.controller.person_controller import subtract_credits
 from api.model.seat_model import SeatResponse, SeatStatus
 from api.view.seat_view import seat_by_id, filter_seats, occupy_seat_sql, free_seat_sql
@@ -14,6 +13,8 @@ from config.db_config import get_db
 OCCUPY_SECONDS_MIN = 10
 OCCUPY_SECONDS_VARIANCE = 5
 OCCUPY_SECONDS_SNACK = 10
+
+ORDER_COST = 10.0
 
 router = APIRouter(
     prefix="/seat",
