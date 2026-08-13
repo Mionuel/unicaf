@@ -14,22 +14,19 @@ CREATE TABLE IF NOT EXISTS "Seat" (
     id SERIAL PRIMARY KEY,
     table_id INTEGER NOT NULL REFERENCES "Table"(id),
     status VARCHAR(20) NOT NULL DEFAULT 'free'
-        CHECK (status IN ('free', 'reserved', 'occupied')),
+        CHECK (status IN ('free', 'occupied')),
     person_id INTEGER REFERENCES "Person"(id),
     expires_at TIMESTAMPTZ
 );
 
 CREATE TABLE IF NOT EXISTS "QueueEntry" (
     id SERIAL PRIMARY KEY,
-    person_id INTEGER NOT NULL REFERENCES "Person"(id),
+    person_id INTEGER NOT NULL UNIQUE REFERENCES "Person"(id),
     joined_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS "Order" (
+CREATE TABLE IF NOT EXISTS "Reservation" (
     id SERIAL PRIMARY KEY,
-    person_id INTEGER NOT NULL REFERENCES "Person"(id),
-    seat_id INTEGER REFERENCES "Seat"(id),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    cost DOUBLE PRECISION NOT NULL,
-    bonus_snack BOOLEAN NOT NULL DEFAULT false
+    seat_id INTEGER NOT NULL UNIQUE REFERENCES "Seat"(id),
+    person_id INTEGER NOT NULL REFERENCES "Person"(id)
 );
