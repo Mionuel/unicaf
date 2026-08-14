@@ -78,12 +78,42 @@ def get_seats(
 
     result = db.execute(query, params).fetchall()
 
+    _LOGGER.info(
+        "get_filtered_seats",
+        table_id=table_id, 
+        status=status, 
+        person_id=person_id,         
+        expires_before=expires_before,
+        expires_after=expires_after,
+        num_found=len(result)
+    )
+
     return result
+
+# A helper function that fetches all the seats where the person is seated at
+def lookup_seat_by_person(person_id: int, db) -> Optional[SeatResponse]:
+    query, params = filter_seats(person_id=person_id)
+    existing_seats = db.execute(query, params).fetchall()
+
+    if existing_seats:
+        return SeatResponse(**existing_seats[0])
+        
+    return None
 
 # The business logic for the occupy_seat endpoint
 # Separate because it will be reused else where
 def occupy_seat_now(seat_id: int, person_id: int, db) -> SeatResponse:
-    _LOGGER.info("occupy_seat", seat_id=seat_id, person_id=person_id)
+    existing_seat = lookup_seat_by_person(person_id, db)
+
+    # checks if the person doesn't occupy another seat already
+    if existing_seat:
+        _LOGGER.warning(
+            "person_already_seated",
+            person_id=person_id,
+            attempted_seat_id=seat_id,
+            existing_seat_id=existing_seat.id
+        )
+        raise ValueError("Person is already seated elsewhere")
 
     seat = lookup_seat(seat_id, db)
 
@@ -110,7 +140,7 @@ def occupy_seat_now(seat_id: int, person_id: int, db) -> SeatResponse:
             to_person_id=person_id,
             extra_time=occupy_seconds - temp,
             at_seat_id=seat.id,
-            at_table_id=seat.table_id
+            at_table_id=seat.table_id,
         )
 
     result = db.execute(
@@ -118,8 +148,18 @@ def occupy_seat_now(seat_id: int, person_id: int, db) -> SeatResponse:
         (person_id, occupy_seconds, seat_id),
     ).fetchone()
 
+    seat_result = SeatResponse(**result)
+
+    _LOGGER.info(
+        "seat_occupied",
+        by_person_id=seat_result.person_id,
+        seat_id=seat_id,
+        at_table_id=seat_result.table_id,
+        for_seconds=occupy_seconds,
+    )
+
     db.commit()
-    return SeatResponse(**result)
+    return seat_result
 
 @router.put("/occupy/{seat_id}", response_model=SeatResponse)
 def occupy_seat(seat_id: int, person_id:int, db=Depends(get_db)):
