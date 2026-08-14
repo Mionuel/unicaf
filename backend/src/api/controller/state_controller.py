@@ -10,6 +10,10 @@ from api.model.seat_model import SeatResponse
 from api.view.seat_view import free_expired_seats_sql
 from config.db_config import get_db
 
+import structlog
+
+_LOGGER = structlog.get_logger()
+
 router = APIRouter(
     prefix="/state",
     tags=["State"]
@@ -46,6 +50,11 @@ def update_seat(seat_id:int, db) -> None:
     if reservation is not None:
         delete_reservation(reservation.id, db)
         person_id = reservation.person_id
+        _LOGGER.info(
+            "reservation_executed",
+            for_person_id=person_id,
+            at_seat_id=reservation.seat_id
+        )
 
     # if there was no reservation for this seat => dequeue the first person and seat them
     else:
@@ -56,7 +65,12 @@ def update_seat(seat_id:int, db) -> None:
             return
 
         person_id = queue_entry.person_id
-        pass
+
+        _LOGGER.info(
+            "dequeued",
+            person_id=person_id,
+            joined_at=queue_entry.joined_at
+        )
 
     # If the queue is empty / there are no reservations => return
     if person_id is None:
@@ -84,6 +98,11 @@ def update_all_seats(db) -> List[SeatResponse] | None:
     # update the state of each seat according to 
     for seat in expired_seats:
         update_seat(seat.id, db)
+
+    _LOGGER.info(
+        "seats_updated",
+        number_seats=len(expired_seats)
+    )
 
     return expired_seats
 

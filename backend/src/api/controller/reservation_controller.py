@@ -12,6 +12,10 @@ router = APIRouter(
     tags=["Reservation"]
 )
 
+import structlog
+
+_LOGGER = structlog.get_logger()
+
 # A helper function that checks if the seat with seat_id is already reserved
 # On success returns reservation's id else - None
 def fetch_reservation(seat_id: int, db) -> ReservationResponse | None:
@@ -42,12 +46,21 @@ def reserve_seat(seat_id: int, person_id: int, db=Depends(get_db)):
 
     # TODO: A free seat should be occupied directly without a reservation
     if seat.status is SeatStatus.free:
+        _LOGGER.warning(
+            "reservation_free_seat",
+            seat_id=seat.id
+        )
         raise HTTPException(status_code=400, detail="Cannot reserve a free seat")
 
     # if there was a reservation already => error
     reservation = fetch_reservation(seat_id, db)
 
     if reservation is not None:
+        _LOGGER.warning(
+            "seat_already_reserved",
+            seat_id=seat.id,
+            seat_status=seat.status
+        )
         raise HTTPException(status_code=409, detail="Seat is already reserved")
 
     result = db.execute(

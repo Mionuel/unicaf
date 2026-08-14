@@ -24,13 +24,31 @@ router = APIRouter(
     tags=["Seats"]
 )
 
+# Helper function for looking up a seat 
+def lookup_seat(seat_id: int, db) -> SeatResponse:
+    row = db.execute(
+        seat_by_id, 
+        [seat_id]
+    ).fetchone()
+
+    if row is None:
+        _LOGGER.warning(
+            "seat_not_found",
+            seat_id=seat_id
+        )
+        raise ValueError("Seat not found")
+
+    _LOGGER.info(
+        "seat_lookup",
+        seat_id=seat_id
+    )
+    
+    return SeatResponse(**row)
+
 @router.get("/{seat_id}", response_model=SeatResponse)
 def get_seat(seat_id: int, db=Depends(get_db)):
     """Fetches the seat with id=seat_id"""
-    result = db.execute(
-        seat_by_id,
-        [seat_id]
-    ).fetchone()
+    result = lookup_seat(seat_id, db)
 
     if not result:
         raise HTTPException(status_code=404, detail="Seat not found")
@@ -62,17 +80,6 @@ def get_seats(
 
     return result
 
-# Helper function for looking up a seat 
-def lookup_seat(seat_id: int, db) -> SeatResponse:
-    row = db.execute(
-        seat_by_id, [seat_id]
-    ).fetchone()
-
-    if row is None:
-        raise ValueError("Seat not found")
-    
-    return SeatResponse(**row)
-
 # The business logic for the occupy_seat endpoint
 # Separate because it will be reused else where
 def occupy_seat_now(seat_id: int, person_id: int, db) -> SeatResponse:
@@ -81,7 +88,14 @@ def occupy_seat_now(seat_id: int, person_id: int, db) -> SeatResponse:
     seat = lookup_seat(seat_id, db)
 
     if seat.status != SeatStatus.free:
-        _LOGGER.warning("seat_not_free")
+        _LOGGER.warning(
+            "seat_not_free",
+            seat_id=seat.id,
+            seat_status=seat.status,
+            occupying_person_id=seat.person_id,
+            requesting_person_id=person_id,
+            free_at=seat.expires_at
+        )
         raise ValueError("Seat is not free")
 
     bonus_snack = subtract_credits(person_id, ORDER_COST, db)
@@ -89,7 +103,15 @@ def occupy_seat_now(seat_id: int, person_id: int, db) -> SeatResponse:
     occupy_seconds = OCCUPY_SECONDS_MIN + random.randint(0, OCCUPY_SECONDS_VARIANCE)
     
     if bonus_snack:
+        temp = occupy_seconds
         occupy_seconds += OCCUPY_SECONDS_SNACK
+        _LOGGER.info(
+            "bonus_snack_assigned",
+            to_person_id=person_id,
+            extra_time=occupy_seconds - temp,
+            at_seat_id=seat.id,
+            at_table_id=seat.table_id
+        )
 
     result = db.execute(
         occupy_seat_sql,
@@ -127,6 +149,13 @@ def free_seat(seat_id: int, db=Depends(get_db)):
             free_seat_sql,
             [seat.id],
         ).fetchone()
+
+        _LOGGER.info(
+            "seat_freed",
+            seat_id=seat.id,
+            old_status=seat.status,
+            new_status=result.status
+        )
 
         return result
 
