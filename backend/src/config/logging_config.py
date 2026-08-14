@@ -1,21 +1,27 @@
 import logging
 import sys
-import structlog
+import structlog # Structlog for logs in JSON format
 
-# Structlog for logs in JSON format
+# Pretty much the default except for the switching between json and human-readable formats
 def setup_logging(json_logs: bool = False, level: int = logging.INFO) -> None:
     logging.basicConfig(stream=sys.stdout, level=level, format="%(message)s")
 
     processors = [
         structlog.contextvars.merge_contextvars,
         structlog.processors.add_log_level,
+        # automatically adds the module and function name in which a log was generated
+        structlog.processors.CallsiteParameterAdder(
+            {
+                structlog.processors.CallsiteParameter.MODULE,
+                structlog.processors.CallsiteParameter.FUNC_NAME,
+            }
+        ),
         structlog.processors.StackInfoRenderer(),
         structlog.processors.format_exc_info,
         structlog.processors.TimeStamper(fmt="iso", utc=True),
     ]
 
-    # Pretty much the default except for this part
-    # switches between printing in more readable format and in JSON via the json_logs flag
+    # switches between printing in JSON format and formatted lines for easiear readability
     renderer = (
         structlog.processors.JSONRenderer()
         if json_logs
