@@ -9,6 +9,9 @@ from api.model.seat_model import SeatResponse, SeatStatus
 from api.view.seat_view import seat_by_id, filter_seats, occupy_seat_sql, free_seat_sql
 
 from config.db_config import get_db
+import structlog
+
+_LOGGER = structlog.get_logger()
 
 OCCUPY_SECONDS_MIN = 10
 OCCUPY_SECONDS_VARIANCE = 5
@@ -73,9 +76,12 @@ def lookup_seat(seat_id: int, db) -> SeatResponse:
 # The business logic for the occupy_seat endpoint
 # Separate because it will be reused else where
 def occupy_seat_now(seat_id: int, person_id: int, db) -> SeatResponse:
+    _LOGGER.info("occupy_seat", seat_id=seat_id, person_id=person_id)
+
     seat = lookup_seat(seat_id, db)
 
     if seat.status != SeatStatus.free:
+        _LOGGER.warning("seat_not_free")
         raise ValueError("Seat is not free")
 
     bonus_snack = subtract_credits(person_id, ORDER_COST, db)

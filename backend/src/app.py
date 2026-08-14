@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI, Depends
 
 from api.controller.person_controller import router as people_router
@@ -8,6 +10,12 @@ from api.controller.queue_controller import router as queue_router
 from api.controller.state_controller import router as state_router
 
 from config.db_config import get_db
+from config.logging_config import setup_logging
+
+# Reads the JSON_LOGS env variable, if not set => false
+json_env = os.getenv("JSON_LOGS", "false").lower()
+
+setup_logging(json_env == "true")
 
 app = FastAPI()
 
