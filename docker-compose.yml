@@ -9,6 +9,8 @@ services:
     depends_on:
       backend:
         condition: service_started
+    volumes:
+      - ./frontend/src:/frontend/src # maps the local src folder to the container's for hot reloads
 
   backend:
     image: unicaf-backend
@@ -22,7 +24,7 @@ services:
       db:
         condition: service_started
     volumes:
-      - ./backend/src:/backend/src # map the host src dir to the container's src for hot reloads
+      - ./backend/src:/backend/src # maps the host src dir to the container's src for hot reloads
 
   db:
     image: postgres:15-alpine

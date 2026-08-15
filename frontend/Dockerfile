@@ -1,7 +1,7 @@
 FROM node:26-alpine
 
 # create this directory and cd into it
-WORKDIR /front-src
+WORKDIR /frontend
 
 COPY package*.json ./
 
