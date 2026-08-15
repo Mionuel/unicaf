@@ -19,7 +19,7 @@ services:
       - "8000:8000"
     environment:
       - PYTHONPATH=/backend/src # helps with resolving python module imports
-      # - JSON_LOGS=true # print the logs in JSON format
+      - JSON_LOGS=true # print the logs in JSON format
     depends_on:
       db:
         condition: service_started
@@ -67,6 +67,7 @@ services:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_AUTH_DISABLE_LOGIN_FORM=true
+      - GF_SECURITY_ALLOW_EMBEDDING=true
     volumes:
       - ./backend/src/config/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
       - grafana-data:/var/lib/grafana
