@@ -12,6 +12,10 @@ router = APIRouter(
     tags=["Queue"]
 )
 
+import structlog
+
+_LOGGER = structlog.get_logger()
+
 # Enqueues a person
 @router.post("/enqueue", response_model=QueueEntry | None)
 def enqueue(person_id: int, db=Depends(get_db)):
@@ -23,7 +27,16 @@ def enqueue(person_id: int, db=Depends(get_db)):
     if entry is None:
         return None
 
-    return QueueEntry(**entry)
+    queue_entry = QueueEntry(**entry)
+
+    _LOGGER.info(
+        "enqueued",
+        person_id=queue_entry.person_id,
+        entry_id=queue_entry.id,
+        joined_at=queue_entry.joined_at
+    )
+
+    return queue_entry
 
 # Dequeues the first person in the queue
 def dequeue(db) -> QueueEntry | None:
@@ -43,4 +56,12 @@ def dequeue(db) -> QueueEntry | None:
 def list_queue(db=Depends(get_db)):
     """Fetches the current queue"""
     rows = db.execute(queue_entries_sql).fetchall()
-    return [QueueEntry(**row) for row in rows]
+
+    entries = [QueueEntry(**row) for row in rows]
+
+    _LOGGER.info(
+        "fetched_queue_entries",
+        num_entries = len(entries)
+    )
+
+    return entries

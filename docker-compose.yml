@@ -17,6 +17,7 @@ services:
       - "8000:8000"
     environment:
       - PYTHONPATH=/backend/src # helps with resolving python module imports
+      # - JSON_LOGS=true # print the logs in JSON format
     depends_on:
       db:
         condition: service_started
@@ -34,7 +35,44 @@ services:
     volumes: 
       - unicaf-data:/var/lib/postgresql/data  # maps the unicaf-data volume to the internal postres anon volume
       - ./backend/src/db/schema.sql:/docker-entrypoint-initdb.d/schema.sql # copies the schema.sql to a dir that automatically executes it on first start up
-      
+
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml # sets the config file location
+    volumes:
+      - ./backend/src/config/loki-config.yaml:/etc/loki/local-config.yaml 
+      - loki-data:/loki
+    depends_on:
+      - backend 
+
+  promtail:
+      image: grafana/promtail:latest
+      command: -config.file=/etc/promtail/promtail-config.yaml
+      volumes:
+        - ./backend/src/config/promtail-config.yaml:/etc/promtail/promtail-config.yaml
+        - /var/run/docker.sock:/var/run/docker.sock:ro
+        - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      depends_on:
+        - loki
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment: # completely bypass the login
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+    volumes:
+      - ./backend/src/config/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - loki
+      - promtail
 
 volumes:
   unicaf-data:
+  loki-data:
+  grafana-data:
