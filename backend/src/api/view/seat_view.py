@@ -84,3 +84,9 @@ random_occupied_seat = """
     ORDER BY RANDOM() 
     LIMIT 1;
 """
+
+unoccupied_seats = """
+    SELECT id 
+    FROM "Seat" 
+    WHERE status = 'free';
+"""

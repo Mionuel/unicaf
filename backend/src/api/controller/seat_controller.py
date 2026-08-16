@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api.controller.person_controller import subtract_credits
 from api.model.seat_model import SeatResponse, SeatStatus
-from api.view.seat_view import seat_by_id, filter_seats, occupy_seat_sql, free_seat_sql, random_occupied_seat
+from api.view.seat_view import seat_by_id, filter_seats, occupy_seat_sql, free_seat_sql, random_occupied_seat, unoccupied_seats
 
 from config.db_config import get_db
 import structlog
@@ -219,3 +219,15 @@ def fetch_random_occupied_seat(db) -> int | None:
     )
         
     return row["id"]
+
+# Helper function for fecthing free seats only
+def fetch_free_seats(db) -> List[int] | None:
+    rows = db.execute(
+        unoccupied_seats
+    ).fetchall()
+    
+    if not rows:
+        return None
+
+    # converts the dictionaries into a list of ids
+    return [row["id"] for row in rows]

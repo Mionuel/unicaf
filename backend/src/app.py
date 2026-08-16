@@ -49,15 +49,11 @@ async def simulation_loop():
     
     while IS_SIMULATION_RUNNING:
         try:
-        # With block opens the connection and automatically closes it when not needed
+            # With block opens the connection and automatically closes it when not needed
             with db_context() as db:
                 simulate_step(db)
                 update_all_seats(db)
 
-            _LOGGER.info(
-                "simulation_loop_step"
-            )
-            
         except Exception as e:
             _LOGGER.error(
                 "simulation_loop_error",

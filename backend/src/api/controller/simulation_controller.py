@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from api.controller.queue_controller import dequeue, enqueue_now
 from api.controller.reservation_controller import delete_reservation, fetch_reservation, reserve_seat_now
-from api.controller.seat_controller import fetch_random_occupied_seat, occupy_seat_now
+from api.controller.seat_controller import fetch_free_seats, fetch_random_occupied_seat, occupy_seat_now
 from api.model.seat_model import SeatResponse
 from api.controller.person_controller import fetch_random_person
 
@@ -92,22 +92,27 @@ def update_seat(seat_id:int, db) -> None:
 
 # Looks up expired seats and calls update_seat on them
 def update_all_seats(db) -> List[SeatResponse] | None:
-    expired_seats = free_expired_seats(db)
-
-    # no expired seats => return
-    if expired_seats is None:
-        return
+    expired_seats = free_expired_seats(db) or []
 
     # update the state of each seat according to 
     for seat in expired_seats:
         update_seat(seat.id, db)
 
-    _LOGGER.info(
-        "seats_updated",
-        number_seats=len(expired_seats)
-    )
+    # handle the unoccupied seats
+    free_seat_ids = fetch_free_seats(db) or []
+    for seat_id in free_seat_ids:
+        # update_seat will attempt to dequeue a person
+        update_seat(seat_id, db)
 
-    return expired_seats
+    total_updated = len(expired_seats)
+
+    if total_updated > 0:
+        _LOGGER.info(
+            "seats_updated",
+            number_seats=total_updated
+        )
+
+    return expired_seats if expired_seats else None
 
 @router.post("/update", response_model=List[SeatResponse] | None)
 def update(db=Depends(get_db)):
@@ -140,5 +145,9 @@ def simulate_step(db):
         return
 
     if seat_id is not None: # unneccessary if, prevents the type checker from complaining tho
-        reserve_seat_now(seat_id, person_id, db)
+        # This try block prevents the main loop from signaling value errors as errors
+        try:
+            reserve_seat_now(seat_id, person_id, db)
+        except ValueError as e:
+            pass
     return
