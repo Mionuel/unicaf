@@ -16,9 +16,9 @@ import structlog
 
 _LOGGER = structlog.get_logger()
 
-# Enqueues a person
-@router.post("/enqueue", response_model=QueueEntry | None)
-def enqueue(person_id: int, db=Depends(get_db)):
+# Business logic for enqueueing a person
+# Separate because it will be reused elsewhere (e.g. simulation_controller)
+def enqueue_now(person_id: int, db) -> QueueEntry | None:
     entry = db.execute(
         enqueue_sql,
         [person_id]
@@ -37,6 +37,11 @@ def enqueue(person_id: int, db=Depends(get_db)):
     )
 
     return queue_entry
+
+
+@router.post("/enqueue", response_model=QueueEntry | None)
+def enqueue(person_id: int, db=Depends(get_db)):
+    return enqueue_now(person_id, db)
 
 # Dequeues the first person in the queue
 def dequeue(db) -> QueueEntry | None:

@@ -31,26 +31,17 @@ def fetch_reservation(seat_id: int, db) -> ReservationResponse | None:
 
     return reservation
 
-# Reserve a seat
-@router.post("/{seat_id}", response_model=ReservationResponse)
-def reserve_seat(seat_id: int, person_id: int, db=Depends(get_db)):
-    """
-        Creates a reservation for an occupied seat. 
-        If the seat is free then the call raises an exception.
-        On success return the created reservation.
-    """
-    try:
-        seat = lookup_seat(seat_id, db)
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+# Business logic for reserving a seat
+# Separate because it will be reused elsewhere (e.g. simulation_controller)
+def reserve_seat_now(seat_id: int, person_id: int, db) -> ReservationResponse:
+    seat = lookup_seat(seat_id, db)
 
-    # TODO: A free seat should be occupied directly without a reservation
     if seat.status is SeatStatus.free:
         _LOGGER.warning(
             "reservation_free_seat",
             seat_id=seat.id
         )
-        raise HTTPException(status_code=400, detail="Cannot reserve a free seat")
+        raise ValueError("Cannot reserve a free seat")
 
     # if there was a reservation already => error
     reservation = fetch_reservation(seat_id, db)
@@ -61,7 +52,7 @@ def reserve_seat(seat_id: int, person_id: int, db=Depends(get_db)):
             seat_id=seat.id,
             seat_status=seat.status
         )
-        raise HTTPException(status_code=409, detail="Seat is already reserved")
+        raise ValueError("Seat is already reserved")
 
     result = db.execute(
         insert_reservation, 
@@ -69,6 +60,19 @@ def reserve_seat(seat_id: int, person_id: int, db=Depends(get_db)):
     ).fetchone()
 
     return result
+
+
+@router.post("/{seat_id}", response_model=ReservationResponse)
+def reserve_seat(seat_id: int, person_id: int, db=Depends(get_db)):
+    """
+        Creates a reservation for an occupied seat. 
+        If the seat is free then the call raises an exception.
+        On success return the created reservation.
+    """
+    try:
+        return reserve_seat_now(seat_id, person_id, db)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 # Delete a reservation
 def delete_reservation(reservation_id: int, db=Depends(get_db)):
