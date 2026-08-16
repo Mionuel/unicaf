@@ -11,7 +11,7 @@ from api.model.seat_model import SeatResponse
 from api.controller.person_controller import fetch_random_person
 
 from api.view.seat_view import free_expired_seats_sql
-from api.view.simulation_view import SimulationAction
+from api.model.simulation_model import SimulationAction
 from config.db_config import get_db
 
 import structlog
@@ -22,9 +22,6 @@ router = APIRouter(
     prefix="/simulation",
     tags=["Simulation"]
 )
-
-IS_SIMULATION_RUNNING = False
-SIMULATION_INTERVAL = 3.0
 
 def free_expired_seats(db) -> List[SeatResponse] | None:
     rows = db.execute(
