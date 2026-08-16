@@ -1,13 +1,16 @@
+import random
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from api.controller.queue_controller import dequeue
-from api.controller.reservation_controller import delete_reservation, fetch_reservation
-from api.controller.seat_controller import occupy_seat_now
+from api.controller.queue_controller import dequeue, enqueue_now
+from api.controller.reservation_controller import delete_reservation, fetch_reservation, reserve_seat_now
+from api.controller.seat_controller import fetch_random_occupied_seat, occupy_seat_now
 from api.model.seat_model import SeatResponse
+from api.controller.person_controller import fetch_random_person
 
 from api.view.seat_view import free_expired_seats_sql
+from api.view.simulation_view import SimulationAction
 from config.db_config import get_db
 
 import structlog
@@ -15,8 +18,8 @@ import structlog
 _LOGGER = structlog.get_logger()
 
 router = APIRouter(
-    prefix="/state",
-    tags=["State"]
+    prefix="/simulation",
+    tags=["Simulation"]
 )
 
 
@@ -106,9 +109,42 @@ def update_all_seats(db) -> List[SeatResponse] | None:
 
     return expired_seats
 
-@router.post("/", response_model=List[SeatResponse] | None)
+@router.post("/update", response_model=List[SeatResponse] | None)
 def update(db=Depends(get_db)):
     try:
         return update_all_seats(db)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/simulate")
+def simulate_action(db=Depends(get_db)):
+    """Simulates a random person either joining the queue or reserving an occupied seat."""
+    try:    
+        person_id = fetch_random_person(db)
+        seat_id = fetch_random_occupied_seat(db)
+
+        # selects a simulation action
+        action = (
+            SimulationAction.enqueue
+            if seat_id is None  # if there are no occupied seats => enqueue
+            else random.choice(list(SimulationAction))  # else randomly choose between reservation and enqueue
+        )
+
+        _LOGGER.info(
+            "simulation_action", 
+            action=action.name, 
+            person_id=person_id, 
+            seat_id=seat_id if seat_id is not None else None
+        )
+
+        if action == SimulationAction.enqueue:
+            enqueue_now(person_id, db)
+            return
+
+        if seat_id is not None: # unneccessary if, prevents the type checker from complaining tho
+            reserve_seat_now(seat_id, person_id, db)
+        return
+
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
