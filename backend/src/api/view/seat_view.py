@@ -76,3 +76,11 @@ free_expired_seats_sql = """
     WHERE status = 'occupied' AND expires_at < now()
     RETURNING id, table_id, status, person_id, expires_at;
 """
+
+random_occupied_seat = """
+    SELECT id 
+    FROM "Seat" 
+    WHERE status = 'occupied' 
+    ORDER BY RANDOM() 
+    LIMIT 1;
+"""
