@@ -1,3 +1,4 @@
+# ON CONFLICT prevents the DBMS from 
 enqueue_sql = """
     INSERT INTO "QueueEntry" (person_id)
     VALUES (%s)
@@ -18,4 +19,10 @@ queue_entries_sql = """
     SELECT id, person_id, joined_at
     FROM "QueueEntry"
     ORDER BY joined_at;
+"""
+
+person_already_in_queue = """
+    SELECT id 
+    FROM "QueueEntry" 
+    WHERE person_id = %s
 """

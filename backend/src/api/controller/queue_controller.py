@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends
 from config.db_config import get_db
 
 from api.model.queue_model import QueueEntry
-from api.view.queue_view import enqueue_sql, dequeue_sql, queue_entries_sql
+from api.view.queue_view import enqueue_sql, dequeue_sql, queue_entries_sql, person_already_in_queue
 
 router = APIRouter(
     prefix="/queue",
@@ -16,6 +16,14 @@ import structlog
 
 _LOGGER = structlog.get_logger()
 
+def is_person_enqueued(person_id: int, db):
+    exists = db.execute(
+        person_already_in_queue, 
+        [person_id]
+    ).fetchone()
+    
+    return exists
+
 # Business logic for enqueueing a person
 # Separate because it will be reused elsewhere (e.g. simulation_controller)
 def enqueue_now(person_id: int, db) -> QueueEntry | None:
@@ -24,7 +32,11 @@ def enqueue_now(person_id: int, db) -> QueueEntry | None:
         [person_id]
     ).fetchone()
 
-    if entry is None:
+    if is_person_enqueued:
+        _LOGGER.warning(
+            "already_in_queue", 
+            person_id=person_id
+        )
         return None
 
     queue_entry = QueueEntry(**entry)
