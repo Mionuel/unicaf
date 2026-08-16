@@ -1,3 +1,4 @@
+import asyncio
 import random
 from typing import List
 
@@ -22,6 +23,8 @@ router = APIRouter(
     tags=["Simulation"]
 )
 
+IS_SIMULATION_RUNNING = False
+SIMULATION_INTERVAL = 3.0
 
 def free_expired_seats(db) -> List[SeatResponse] | None:
     rows = db.execute(
@@ -117,34 +120,28 @@ def update(db=Depends(get_db)):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.post("/simulate")
-def simulate_action(db=Depends(get_db)):
-    """Simulates a random person either joining the queue or reserving an occupied seat."""
-    try:    
-        person_id = fetch_random_person(db)
-        seat_id = fetch_random_occupied_seat(db)
+def simulate_step(db):
+    person_id = fetch_random_person(db)
+    seat_id = fetch_random_occupied_seat(db)
 
-        # selects a simulation action
-        action = (
-            SimulationAction.enqueue
-            if seat_id is None  # if there are no occupied seats => enqueue
-            else random.choice(list(SimulationAction))  # else randomly choose between reservation and enqueue
-        )
+    # selects a simulation action
+    action = (
+        SimulationAction.enqueue
+        if seat_id is None  # if there are no occupied seats => enqueue
+        else random.choice(list(SimulationAction))  # else randomly choose between reservation and enqueue
+    )
 
-        _LOGGER.info(
-            "simulation_action", 
-            action=action.name, 
-            person_id=person_id, 
-            seat_id=seat_id if seat_id is not None else None
-        )
+    _LOGGER.info(
+        "simulation_action", 
+        action=action.name, 
+        person_id=person_id, 
+        seat_id=seat_id if seat_id is not None else None
+    )
 
-        if action == SimulationAction.enqueue:
-            enqueue_now(person_id, db)
-            return
-
-        if seat_id is not None: # unneccessary if, prevents the type checker from complaining tho
-            reserve_seat_now(seat_id, person_id, db)
+    if action == SimulationAction.enqueue:
+        enqueue_now(person_id, db)
         return
 
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    if seat_id is not None: # unneccessary if, prevents the type checker from complaining tho
+        reserve_seat_now(seat_id, person_id, db)
+    return

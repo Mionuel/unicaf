@@ -52,8 +52,6 @@ def dequeue(db) -> QueueEntry | None:
     if entry is None:
         return None
 
-    print(entry)
-
     return QueueEntry(**entry)
 
 # Returns all the queue entries as a List
