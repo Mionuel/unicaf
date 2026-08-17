@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from config.db_config import get_db
 
-from api.view.person_view import new_person, get_person_by_id, all_people, update_person
+from api.view.person_view import new_person, get_person_by_id, all_people, update_person, random_person
 from api.model.person_model import PersonCreate, PersonResponse
 
 import structlog
@@ -109,3 +109,22 @@ def subtract_credits(person_id: int, cost: float, db) -> bool:
     )
 
     return bonus_snack
+
+# fetches a random person
+def fetch_random_person(db) -> int:
+    row = db.execute(
+        random_person
+    ).fetchone()
+
+    if not row:
+        _LOGGER.error(
+            "empty_people_table"
+        )
+        raise ValueError("No people exist to simulate with")
+
+    _LOGGER.info(
+        "radom_person_selected",
+        person_id = row["id"]
+    )
+
+    return row["id"]
