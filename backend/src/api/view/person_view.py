@@ -19,3 +19,7 @@ update_person = """
     SET credit = credit - %s, bonus_points = %s 
     WHERE id = %s;
 """
+
+random_person = """
+    SELECT id FROM "Person" ORDER BY RANDOM() LIMIT 1
+"""
