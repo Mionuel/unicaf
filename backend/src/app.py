@@ -2,7 +2,8 @@ import asyncio
 import contextlib
 import os
 
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from api.controller.person_controller import router as people_router
 from api.controller.table_contoller import router as table_router
@@ -27,6 +28,13 @@ json_env = os.getenv("JSON_LOGS", "false").lower()
 setup_logging(json_env == "true")
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(people_router)
 app.include_router(table_router)
