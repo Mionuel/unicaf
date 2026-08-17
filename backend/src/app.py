@@ -36,7 +36,7 @@ app.include_router(queue_router)
 app.include_router(state_router)
 
 IS_SIMULATION_RUNNING = False
-SIMULATION_INTERVAL = 3.0
+SIMULATION_INTERVAL = 1.5
 
 @app.get("/")
 def home():

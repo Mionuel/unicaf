@@ -17,7 +17,7 @@ services:
       - "8000:8000"
     environment:
       - PYTHONPATH=/backend/src # helps with resolving python module imports
-      # - JSON_LOGS=true # print the logs in JSON format
+      - JSON_LOGS=true # print the logs in JSON format
     depends_on:
       db:
         condition: service_started
