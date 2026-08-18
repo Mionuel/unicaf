@@ -2,7 +2,7 @@ import asyncio
 import contextlib
 import os
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.controller.person_controller import router as people_router
@@ -20,6 +20,8 @@ from api.controller.simulation_controller import simulate_step, update_all_seats
 from api.model.simulation_model import SimulationResponse, SimulationStatus
 
 import structlog
+
+from db.seed import seed_database
 
 _LOGGER = structlog.get_logger()
 
@@ -118,3 +120,23 @@ async def stop_simulation():
     )
 
     return response
+
+@app.post("/seed")
+def seed_db(db=Depends(get_db)):
+    try:
+        # RESTART IDENTITY restarts the id auto increments from 0
+        db.execute('TRUNCATE TABLE "Person", "Table", "Seat" RESTART IDENTITY CASCADE;')
+        db.commit()
+
+        seed_database()
+
+        _LOGGER.info(
+                "db_seeding_success"
+        )
+
+    except Exception as e:  
+        _LOGGER.error(
+            "database_seed_failed",
+            error=str(e)
+        )
+        raise HTTPException(status_code=400, detail=str(e))

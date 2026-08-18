@@ -3,22 +3,29 @@ import random
 import psycopg
 from config.db_config import db_config
 
+import structlog
+
+_LOGGER = structlog.get_logger()
+
 # Create y random tables (label should be an integer)
 # Create 4 * y random seats per table (all with status free)
-
 def seed_database(
         num_people: int = 1000, 
         num_tables: int = 20, 
         seats_per_table: int = 4
 ):
-    print("Seeding the DB...")
+    _LOGGER.info(
+        "db_seeding_start"
+    )
 
     with psycopg.connect(**db_config) as conn:
         generate_people(conn, num_people)
         generate_tables(conn, num_tables)
         generate_seats(conn, seats_per_table)
 
-    print("Finished seeding the DB!")
+    _LOGGER.info(
+        "db_seeding_end"
+    )
 
 # Generates n random people (random names (selected from a file with first and last names) + credits + bonus)
 def generate_people(
@@ -55,14 +62,20 @@ def generate_people(
             people_data
         )
 
-    print(f"Successfully generated {n} people")
+    _LOGGER.info(
+        "db_seeding_people",
+        num_people=n
+    )
 
 def generate_tables(conn, n: int):
     with conn.cursor() as cur:
         # Executes 'INSERT INTO "Table" DEFAULT VALUES' n times
         cur.executemany('INSERT INTO "Table" DEFAULT VALUES;', [()] * n)
         
-    print(f"Successfully generated {n} tables")
+    _LOGGER.info(
+        "db_seeding_tables",
+        num_tables=n
+    )
 
 def generate_seats(conn, seats_per_table: int):
     with conn.cursor() as cur:
@@ -83,8 +96,12 @@ def generate_seats(conn, seats_per_table: int):
             """,
             seats_data
         )
-        
-    print(f"Successfully generated {len(seats_data)} seats total, with {seats_per_table} per table")
+
+    _LOGGER.info(
+        "db_seeding_seats",
+        total_seats=len(seats_data),
+        seats_per_table=seats_per_table
+    )
 
 if __name__ == "__main__":
     seed_database()
