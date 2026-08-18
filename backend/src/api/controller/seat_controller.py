@@ -6,14 +6,14 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api.controller.person_controller import subtract_credits
 from api.model.seat_model import SeatResponse, SeatStatus
-from api.view.seat_view import seat_by_id, filter_seats, occupy_seat_sql, free_seat_sql, random_occupied_seat, unoccupied_seats
+from api.view.seat_view import seat_by_id, filter_seats, occupy_seat_sql, free_seat_sql, random_occupied_seat, unoccupied_seats, all_seats
 
 from config.db_config import get_db
 import structlog
 
 _LOGGER = structlog.get_logger()
 
-OCCUPY_SECONDS_MIN = 10
+OCCUPY_SECONDS_MIN = 50
 OCCUPY_SECONDS_VARIANCE = 5
 OCCUPY_SECONDS_SNACK = 10
 
@@ -231,3 +231,12 @@ def fetch_free_seats(db) -> List[int] | None:
 
     # converts the dictionaries into a list of ids
     return [row["id"] for row in rows]
+
+def fetch_all_seats(db) -> List[SeatResponse]:
+    rows = db.execute(
+        all_seats
+    ).fetchall()
+
+    seats = [SeatResponse.model_validate(row) for row in rows]
+
+    return seats

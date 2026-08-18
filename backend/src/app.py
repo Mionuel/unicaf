@@ -11,6 +11,7 @@ from api.controller.seat_controller import router as seat_router
 from api.controller.reservation_controller import router as reservation_router
 from api.controller.queue_controller import router as queue_router
 from api.controller.simulation_controller import router as state_router
+from api.controller.socket_controller import broadcast_state, router as socket_router
 
 from config.db_config import get_db
 from config.logging_config import setup_logging
@@ -42,9 +43,10 @@ app.include_router(seat_router)
 app.include_router(reservation_router)
 app.include_router(queue_router)
 app.include_router(state_router)
+app.include_router(socket_router)
 
 IS_SIMULATION_RUNNING = False
-SIMULATION_INTERVAL = 1.5
+SIMULATION_INTERVAL = 0.2
 
 @app.get("/")
 def home():
@@ -61,6 +63,7 @@ async def simulation_loop():
             with db_context() as db:
                 simulate_step(db)
                 update_all_seats(db)
+                await broadcast_state(db)
 
         except Exception as e:
             _LOGGER.error(
@@ -70,6 +73,8 @@ async def simulation_loop():
 
         # Wait before next simulation step 
         await asyncio.sleep(SIMULATION_INTERVAL)
+
+
 @app.post("/start")
 async def start_simulation():
     global IS_SIMULATION_RUNNING
