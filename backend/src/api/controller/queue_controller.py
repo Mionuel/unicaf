@@ -6,18 +6,20 @@ from psycopg import Connection
 from config.db_config import get_db
 
 from api.model.queue_model import QueueEntry
-from api.view.queue_view import enqueue_sql, dequeue_sql, queue_entries_sql, person_already_in_queue
+from api.view.queue_view import enqueue_sql, dequeue_sql, queue_entries_sql, person_already_in_queue, queue_count_sql
 
 router = APIRouter(
     prefix="/queue",
     tags=["Queue"]
 )
 
+MAX_QUEUE_SIZE = 50
+
 import structlog
 
 _LOGGER = structlog.get_logger()
 
-def is_person_enqueued(person_id: int, db):
+def is_person_enqueued(person_id: int, db) -> bool:
     exists = db.execute(
         person_already_in_queue, 
         [person_id]
@@ -25,20 +27,39 @@ def is_person_enqueued(person_id: int, db):
     
     return exists
 
+def current_queue_size(db) -> int:
+    row = db.execute(
+        queue_count_sql
+    ).fetchone()
+
+    in_queue = row["count"]
+
+    return in_queue
+
 # Business logic for enqueueing a person
 # Separate because it will be reused elsewhere (e.g. simulation_controller)
 def enqueue_now(person_id: int, db) -> QueueEntry | None:
-    entry = db.execute(
-        enqueue_sql,
-        [person_id]
-    ).fetchone()
-
-    if is_person_enqueued:
+    if is_person_enqueued(person_id, db):
         _LOGGER.warning(
             "already_in_queue", 
             person_id=person_id
         )
         return None
+
+    queue_size = current_queue_size(db)
+
+    if current_queue_size(db) + 1 > MAX_QUEUE_SIZE:
+        _LOGGER.warning(
+            "queue_is_full",
+            queue_size=queue_size
+        )
+        return None
+
+    entry = db.execute(
+        enqueue_sql,
+        [person_id]
+    ).fetchone()
+
 
     queue_entry = QueueEntry(**entry)
 
