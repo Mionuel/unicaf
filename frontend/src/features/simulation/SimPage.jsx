@@ -1,4 +1,6 @@
 import { Button, Stack } from "@mui/material";
+import QueueView from "src/features/simulation/components/QueueView";
+import { SocketProvider } from "src/features/simulation/context/SocketProvider";
 import {
   startSimulation,
   stopSimulation,
@@ -16,8 +18,11 @@ function SimPage() {
   };
 
   return (
-    <div>
+    <>
       <h1>Welcome to the Simulation Page!</h1>
+      <SocketProvider>
+        <QueueView />
+      </SocketProvider>
       <Stack direction="row" spacing={2}>
         <Button variant="contained" color="success" onClick={handleStart}>
           Start
@@ -26,7 +31,7 @@ function SimPage() {
           Stop
         </Button>
       </Stack>
-    </div>
+    </>
   );
 }
 
