@@ -50,9 +50,11 @@ function QueueView() {
     <>
       <Box
         sx={{
+          width: "100%",
           display: "grid",
           gridTemplateColumns: "repeat(25, 40px)",
           gap: "4px",
+          justifyContent: "center",
         }}
       >
         {cells}

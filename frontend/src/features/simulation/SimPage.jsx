@@ -19,15 +19,21 @@ function SimPage() {
   };
 
   return (
-    <>
-      <h1>Welcome to the Simulation Page!</h1>
+    <Stack alignItems="center" direction="column" spacing={4} sx={{ pt: 8 }}>
       <SocketProvider>
-        <Stack direction="column" spacing={2}>
+        <Stack direction="column" spacing={10}>
           <QueueView />
           <HallView />
         </Stack>
       </SocketProvider>
-      <Stack direction="row" spacing={2}>
+      <Stack
+        direction="row"
+        spacing={2}
+        sx={{
+          width: "100%",
+          justifyContent: "center",
+        }}
+      >
         <Button variant="contained" color="success" onClick={handleStart}>
           Start
         </Button>
@@ -35,7 +41,7 @@ function SimPage() {
           Stop
         </Button>
       </Stack>
-    </>
+    </Stack>
   );
 }
 

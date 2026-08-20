@@ -36,7 +36,6 @@ function SeatView({ seat }) {
           flexShrink: 0,
         }}
       />
-
       <Popover
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
