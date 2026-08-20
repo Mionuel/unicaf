@@ -122,6 +122,7 @@ def update(db=Depends(get_db)):
         raise HTTPException(status_code=400, detail=str(e))
 
 
+# TODO: introduce people_per_second variable
 def simulate_step(db):
     person_id = fetch_random_person(db)
     seat_id = fetch_random_occupied_seat(db)

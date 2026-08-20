@@ -55,7 +55,7 @@ function QueueView() {
 
   return (
     <>
-      <Stack alignItems="center" spacing={2}>
+      <Stack alignItems="center" spacing={1}>
         <Typography variant="h4" align="center">
           Queue
         </Typography>

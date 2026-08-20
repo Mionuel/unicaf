@@ -19,9 +19,14 @@ function SimPage() {
   };
 
   return (
-    <Stack alignItems="center" direction="column" spacing={4} sx={{ pt: 8 }}>
+    <Stack
+      alignItems="center"
+      direction="column"
+      spacing={4}
+      sx={{ pt: 2, overflowY: "auto", pb: 4, height: "100vh" }}
+    >
       <SocketProvider>
-        <Stack direction="column" spacing={10}>
+        <Stack direction="column" spacing={6}>
           <QueueView />
           <HallView />
         </Stack>
