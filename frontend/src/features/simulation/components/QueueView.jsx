@@ -1,15 +1,9 @@
-import { useState, MouseEvent } from "react";
+import { useState } from "react";
 import { Box, Popover, Card, CardContent, Typography } from "@mui/material";
 
 import { useSocket } from "src/features/simulation/hooks/useSocket";
 
 const QUEUE_SIZE = 50;
-
-// Turns milliseconds to "seconds s" format string
-function formatTime(ms) {
-  const totalSeconds = Math.floor(ms / 1000);
-  return totalSeconds.toString() + " s";
-}
 
 function QueueView() {
   const { queueEntries } = useSocket();

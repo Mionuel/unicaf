@@ -9,3 +9,8 @@ export async function stopSimulation() {
   const res = await api.post("/stop");
   return res.data;
 }
+
+export async function fetchTableCount() {
+  const response = await api.get("/table/");
+  return response.data.total_tables ?? 0;
+}
