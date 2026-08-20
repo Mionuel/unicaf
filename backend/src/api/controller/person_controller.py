@@ -1,10 +1,10 @@
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 
 from config.db_config import get_db
 
-from api.view.person_view import new_person, get_person_by_id, all_people, update_person, random_person
+from api.view.person_view import new_person, get_person_by_id, all_people, update_person, random_person, add_credits_to_person, add_credits_to_all
 from api.model.person_model import PersonCreate, PersonResponse
 
 import structlog
@@ -128,3 +128,27 @@ def fetch_random_person(db) -> int:
     )
 
     return row["id"]
+
+@router.post("/add_credits")
+def add_credits(amount: float, person_id: Optional[int] = None, db=Depends(get_db)):
+    """Adds n credits to every person (if id not set) or to a specific person (if id is set)"""
+    
+    if person_id is not None:
+        person = db.execute(
+            add_credits_to_person,
+            [amount, person_id]
+        ).fetchone()
+
+        if not person:
+            raise HTTPException(status_code=400, detail="Person not found")
+
+        return person 
+
+    # Executes for all people if no person_id is provided
+    else:
+        people = db.execute(
+            add_credits_to_all,
+            [amount]
+        ).fetchall()
+        
+        return len(people)

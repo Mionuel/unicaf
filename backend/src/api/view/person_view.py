@@ -23,3 +23,16 @@ update_person = """
 random_person = """
     SELECT id FROM "Person" ORDER BY RANDOM() LIMIT 1
 """
+
+add_credits_to_person = """
+    UPDATE "Person" 
+    SET credit = credit + %s 
+    WHERE id = %s
+    RETURNING *;
+"""
+
+add_credits_to_all = """
+    UPDATE "Person" 
+    SET credit = credit + %s
+    RETURNING *;
+"""

@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { Box, Popover, Card, CardContent, Typography } from "@mui/material";
+import {
+  Box,
+  Popover,
+  Card,
+  CardContent,
+  Typography,
+  Stack,
+} from "@mui/material";
 
 import { useSocket } from "src/features/simulation/hooks/useSocket";
 
@@ -48,17 +55,22 @@ function QueueView() {
 
   return (
     <>
-      <Box
-        sx={{
-          width: "100%",
-          display: "grid",
-          gridTemplateColumns: "repeat(25, 40px)",
-          gap: "4px",
-          justifyContent: "center",
-        }}
-      >
-        {cells}
-      </Box>
+      <Stack alignItems="center" spacing={2}>
+        <Typography variant="h4" align="center">
+          Queue
+        </Typography>
+        <Box
+          sx={{
+            width: "100%",
+            display: "grid",
+            gridTemplateColumns: "repeat(25, 40px)",
+            gap: "4px",
+            justifyContent: "center",
+          }}
+        >
+          {cells}
+        </Box>
+      </Stack>
 
       <Popover
         anchorEl={popoverAnchor}
