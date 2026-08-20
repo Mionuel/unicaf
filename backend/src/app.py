@@ -17,7 +17,7 @@ from config.db_config import get_db
 from config.logging_config import setup_logging
 
 from api.controller.simulation_controller import simulate_step, update_all_seats
-from api.model.simulation_model import SimulationResponse, SimulationStatus
+from api.model.simulation_model import SeedRequest, SimulationResponse, SimulationStatus
 
 import structlog
 
@@ -121,17 +121,20 @@ async def stop_simulation():
 
     return response
 
+
 @app.post("/seed")
-def seed_db(db=Depends(get_db)):
+def seed_db(payload: SeedRequest, db=Depends(get_db)):
     try:
         # RESTART IDENTITY restarts the id auto increments from 0
         db.execute('TRUNCATE TABLE "Person", "Table", "Seat" RESTART IDENTITY CASCADE;')
         db.commit()
 
-        seed_database()
+        seed_database(payload.peopleTotal, payload.tablesTotal)
 
         _LOGGER.info(
-                "db_seeding_success"
+                "db_seeding_success",
+                num_people=payload.peopleTotal,
+                num_tables=payload.tablesTotal
         )
 
     except Exception as e:  
