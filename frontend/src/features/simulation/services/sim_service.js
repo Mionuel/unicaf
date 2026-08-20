@@ -14,3 +14,7 @@ export async function fetchTableCount() {
   const response = await api.get("/table/");
   return response.data.total_tables ?? 0;
 }
+export async function fetchPerson(personId) {
+  const res = await api.get(`/people/${personId}`);
+  return res.data;
+}

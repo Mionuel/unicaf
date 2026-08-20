@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Box, Popover, Card, CardContent, Typography } from "@mui/material";
 import { formatTime } from "src/features/simulation/helpers/formatting";
 import { SEAT_SIZE } from "src/features/simulation/helpers/constants";
+import { PersonView } from "src/features/simulation/components/PersonView";
 
 function SeatView({ seat }) {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -55,9 +56,7 @@ function SeatView({ seat }) {
                 <Typography variant="body2" color="text.secondary">
                   Seat ID: {seat.id}
                 </Typography>
-                <Typography variant="body2">
-                  Person ID: {seat.person_id}
-                </Typography>
+                <PersonView personId={seat.person_id} />
                 <Typography variant="body2">
                   Time remaining: {timeRemaining}
                 </Typography>

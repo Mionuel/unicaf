@@ -11,6 +11,7 @@ import {
 import { useSocket } from "src/features/simulation/hooks/useSocket";
 import { formatTime } from "src/features/simulation/helpers/formatting";
 import { fetchSettings } from "src/features/settings/services/settings_service";
+import { PersonView } from "src/features/simulation/components/PersonView";
 
 function QueueView() {
   const { queueEntries } = useSocket();
@@ -99,9 +100,7 @@ function QueueView() {
             </Typography>
             {selectedCell?.entry ? (
               <>
-                <Typography variant="body2">
-                  Person ID: {selectedCell.entry.person_id}
-                </Typography>
+                <PersonView personId={selectedCell.entry.person_id} />
                 <Typography variant="body2">
                   Time in queue: {selectedCell.time}
                 </Typography>
