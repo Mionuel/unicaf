@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 
 import { useSocket } from "src/features/simulation/hooks/useSocket";
+import { formatTime } from "src/features/simulation/helpers/formatting";
 
 const QUEUE_SIZE = 50;
 
