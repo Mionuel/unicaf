@@ -1,8 +1,16 @@
 import { useState } from "react";
-import { Box, Popover, Card, CardContent, Typography } from "@mui/material";
+import {
+  Box,
+  Popover,
+  Card,
+  CardContent,
+  Typography,
+  Button,
+} from "@mui/material";
 import { formatTime } from "src/features/simulation/helpers/formatting";
 import { SEAT_SIZE } from "src/features/simulation/helpers/constants";
 import { PersonView } from "src/features/simulation/components/PersonView";
+import { freeSeat } from "src/features/simulation/services/sim_service";
 
 function SeatView({ seat }) {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -22,6 +30,11 @@ function SeatView({ seat }) {
 
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleKickOut = async () => {
+    await freeSeat(seat?.id);
+    handleClose(); // closes the pop-over
   };
 
   return (
@@ -60,6 +73,15 @@ function SeatView({ seat }) {
                 <Typography variant="body2">
                   Time remaining: {timeRemaining}
                 </Typography>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  size="small"
+                  fullWidth
+                  onClick={handleKickOut}
+                >
+                  Kick Out
+                </Button>
               </>
             ) : (
               // Seat if not occupied yet

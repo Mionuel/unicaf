@@ -190,7 +190,7 @@ def free_seat(seat_id: int, db=Depends(get_db)):
             "seat_freed",
             seat_id=seat.id,
             old_status=seat.status,
-            new_status=result.status
+            new_status=seat.status
         )
 
         return result

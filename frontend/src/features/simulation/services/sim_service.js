@@ -18,3 +18,8 @@ export async function fetchPerson(personId) {
   const res = await api.get(`/people/${personId}`);
   return res.data;
 }
+
+export async function freeSeat(seatId) {
+  const res = await api.put(`/seat/free/${seatId}`);
+  return res.data;
+}
