@@ -13,7 +13,7 @@ router = APIRouter(
     tags=["Queue"]
 )
 
-MAX_QUEUE_SIZE = 50
+from config.app_config import app_settings
 
 import structlog
 
@@ -48,7 +48,7 @@ def enqueue_now(person_id: int, db) -> QueueEntry | None:
 
     queue_size = current_queue_size(db)
 
-    if current_queue_size(db) + 1 > MAX_QUEUE_SIZE:
+    if current_queue_size(db) + 1 > app_settings.max_queue_size:
         _LOGGER.warning(
             "queue_is_full",
             queue_size=queue_size

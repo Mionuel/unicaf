@@ -22,6 +22,7 @@ from api.model.simulation_model import SeedRequest, SimulationResponse, Simulati
 import structlog
 
 from db.seed import seed_database
+from config.app_config import SimulationSettings, app_settings
 
 _LOGGER = structlog.get_logger()
 
@@ -48,7 +49,6 @@ app.include_router(state_router)
 app.include_router(socket_router)
 
 IS_SIMULATION_RUNNING = False
-SIMULATION_INTERVAL = 0.2
 
 @app.get("/")
 def home():
@@ -74,7 +74,7 @@ async def simulation_loop():
             )
 
         # Wait before next simulation step 
-        await asyncio.sleep(SIMULATION_INTERVAL)
+        await asyncio.sleep(app_settings.simulation_interval)
 
 
 @app.post("/start")
@@ -143,3 +143,25 @@ def seed_db(payload: SeedRequest, db=Depends(get_db)):
             error=str(e)
         )
         raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/settings", response_model=SimulationSettings)
+def get_settings():
+    """
+        Returns the current settings
+    """
+    return app_settings
+
+@app.put("/settings", response_model=SimulationSettings)
+def update_settings(new_settings: SimulationSettings):
+    """
+        Updates the app's settings
+    """
+    for key, value in new_settings.model_dump().items():
+        setattr(app_settings, key, value)
+        
+    _LOGGER.info(
+        "settings_updated", 
+        new_settings=app_settings.model_dump()
+    )
+    
+    return app_settings

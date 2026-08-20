@@ -9,9 +9,9 @@ from api.model.person_model import PersonCreate, PersonResponse
 
 import structlog
 
-_LOGGER = structlog.get_logger()
+from config.app_config import app_settings
 
-BONUS_THRESHOLD = 5
+_LOGGER = structlog.get_logger()
 
 router = APIRouter(
     prefix="/people",
@@ -90,7 +90,7 @@ def subtract_credits(person_id: int, cost: float, db) -> bool:
         )
         raise ValueError("Insufficient credits")
 
-    bonus_snack = person.bonus_points >= BONUS_THRESHOLD
+    bonus_snack = person.bonus_points >= app_settings.bonus_threshold
     # if the person gets a bonus snack => no bonus points
     new_points = 0 if bonus_snack else person.bonus_points + 1
 

@@ -13,11 +13,7 @@ import structlog
 
 _LOGGER = structlog.get_logger()
 
-OCCUPY_SECONDS_MIN = 50
-OCCUPY_SECONDS_VARIANCE = 5
-OCCUPY_SECONDS_SNACK = 10
-
-ORDER_COST = 10.0
+from config.app_config import app_settings
 
 router = APIRouter(
     prefix="/seat",
@@ -128,13 +124,13 @@ def occupy_seat_now(seat_id: int, person_id: int, db) -> SeatResponse:
         )
         raise ValueError("Seat is not free")
 
-    bonus_snack = subtract_credits(person_id, ORDER_COST, db)
+    bonus_snack = subtract_credits(person_id, app_settings.order_cost, db)
 
-    occupy_seconds = OCCUPY_SECONDS_MIN + random.randint(0, OCCUPY_SECONDS_VARIANCE)
+    occupy_seconds = app_settings.occupy_seconds_min + random.randint(0, app_settings.occupy_seconds_variance)
     
     if bonus_snack:
         temp = occupy_seconds
-        occupy_seconds += OCCUPY_SECONDS_SNACK
+        occupy_seconds += app_settings.occupy_seconds_snack
         _LOGGER.info(
             "bonus_snack_assigned",
             to_person_id=person_id,
