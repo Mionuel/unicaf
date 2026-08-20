@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Box,
   Popover,
@@ -10,14 +10,14 @@ import {
 
 import { useSocket } from "src/features/simulation/hooks/useSocket";
 import { formatTime } from "src/features/simulation/helpers/formatting";
-
-const QUEUE_SIZE = 50;
+import { fetchSettings } from "src/features/settings/services/settings_service";
 
 function QueueView() {
   const { queueEntries } = useSocket();
 
   const [popoverAnchor, setPopoverAnchor] = useState(null);
   const [selectedCell, setSelectedCell] = useState(null);
+  const [maxQueueSize, setMaxQueueSize] = useState(50);
 
   const handleCellClick = (event, entry, position) => {
     setPopoverAnchor(event.currentTarget);
@@ -35,7 +35,17 @@ function QueueView() {
     setSelectedCell(null);
   };
 
-  const cells = Array.from({ length: QUEUE_SIZE }, (_, index) => {
+  useEffect(() => {
+    const loadSettings = async () => {
+      const settings = await fetchSettings();
+
+      setMaxQueueSize(settings.max_queue_size);
+    };
+
+    loadSettings();
+  }, []);
+
+  const cells = Array.from({ length: maxQueueSize }, (_, index) => {
     const entry = queueEntries[index];
     const isOccupied = Boolean(entry);
 
@@ -85,7 +95,7 @@ function QueueView() {
             <Typography variant="body2" color="text.secondary">
               Position in queue:{" "}
               {selectedCell !== null ? selectedCell.position + 1 : "-"} /{" "}
-              {QUEUE_SIZE}
+              {maxQueueSize}
             </Typography>
             {selectedCell?.entry ? (
               <>
