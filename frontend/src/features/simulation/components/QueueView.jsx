@@ -84,35 +84,37 @@ function QueueView() {
         </Box>
       </Stack>
 
-      <Popover
-        anchorEl={popoverAnchor}
-        open={Boolean(popoverAnchor)}
-        onClose={handlePopoverClose}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-        transformOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Card sx={{ minWidth: 200 }}>
-          <CardContent>
-            <Typography variant="body2" color="text.secondary">
-              Position in queue:{" "}
-              {selectedCell !== null ? selectedCell.position + 1 : "-"} /{" "}
-              {maxQueueSize}
-            </Typography>
-            {selectedCell?.entry ? (
-              <>
-                <PersonView personId={selectedCell.entry.person_id} />
-                <Typography variant="body2">
-                  Time in queue: {selectedCell.time}
-                </Typography>
-              </>
-            ) : (
+      {Boolean(popoverAnchor) && (
+        <Popover
+          anchorEl={popoverAnchor}
+          open={Boolean(popoverAnchor)}
+          onClose={handlePopoverClose}
+          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+          transformOrigin={{ vertical: "top", horizontal: "center" }}
+        >
+          <Card sx={{ minWidth: 200 }}>
+            <CardContent>
               <Typography variant="body2" color="text.secondary">
-                This spot is empty.
+                Position in queue:{" "}
+                {selectedCell !== null ? selectedCell.position + 1 : "-"} /{" "}
+                {maxQueueSize}
               </Typography>
-            )}
-          </CardContent>
-        </Card>
-      </Popover>
+              {selectedCell?.entry ? (
+                <>
+                  <PersonView personId={selectedCell.entry.person_id} />
+                  <Typography variant="body2">
+                    Time in queue: {selectedCell.time}
+                  </Typography>
+                </>
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  This spot is empty.
+                </Typography>
+              )}
+            </CardContent>
+          </Card>
+        </Popover>
+      )}
     </>
   );
 }

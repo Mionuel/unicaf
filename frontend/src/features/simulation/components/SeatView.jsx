@@ -50,53 +50,55 @@ function SeatView({ seat }) {
           flexShrink: 0,
         }}
       />
-      <Popover
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleClose}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-        transformOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        {/* Seat is occupied */}
-        <Card sx={{ minWidth: 200 }}>
-          <CardContent>
-            {!seat ? (
-              <Typography variant="body2" color="text.secondary">
-                No seat data.
-              </Typography>
-            ) : isOccupied ? (
-              <>
+      {Boolean(anchorEl) && (
+        <Popover
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleClose}
+          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+          transformOrigin={{ vertical: "top", horizontal: "center" }}
+        >
+          {/* Seat is occupied */}
+          <Card sx={{ minWidth: 200 }}>
+            <CardContent>
+              {!seat ? (
                 <Typography variant="body2" color="text.secondary">
-                  Seat ID: {seat.id}
+                  No seat data.
                 </Typography>
-                <PersonView personId={seat.person_id} />
-                <Typography variant="body2">
-                  Time remaining: {timeRemaining}
-                </Typography>
-                <Button
-                  variant="outlined"
-                  color="error"
-                  size="small"
-                  fullWidth
-                  onClick={handleKickOut}
-                >
-                  Kick Out
-                </Button>
-              </>
-            ) : (
-              // Seat if not occupied yet
-              <>
-                <Typography variant="body2" color="text.secondary">
-                  Seat ID: {seat.id}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  This seat is free.
-                </Typography>
-              </>
-            )}
-          </CardContent>
-        </Card>
-      </Popover>
+              ) : isOccupied ? (
+                <>
+                  <Typography variant="body2" color="text.secondary">
+                    Seat ID: {seat.id}
+                  </Typography>
+                  <PersonView personId={seat.person_id} />
+                  <Typography variant="body2">
+                    Time remaining: {timeRemaining}
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    size="small"
+                    fullWidth
+                    onClick={handleKickOut}
+                  >
+                    Kick Out
+                  </Button>
+                </>
+              ) : (
+                // Seat if not occupied yet
+                <>
+                  <Typography variant="body2" color="text.secondary">
+                    Seat ID: {seat.id}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    This seat is free.
+                  </Typography>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </Popover>
+      )}
     </>
   );
 }
