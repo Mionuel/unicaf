@@ -79,7 +79,7 @@ function SettingsPage() {
               label="Update Delay (sec)"
               min={0.0001}
               step={0.1}
-              value={simSettings.simulation_interval}
+              value={simSettings.update_delay}
               onChange={handleSimChange("update_delay")}
             />
             <NumberField
