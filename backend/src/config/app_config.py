@@ -3,6 +3,7 @@ from pydantic import BaseModel
 class SimulationSettings(BaseModel):
     # app.py
     simulation_interval: float = 0.1
+    people_per_second: float = 10.0
     
     # queue_controller.py
     max_queue_size: int = 25
