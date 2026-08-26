@@ -64,7 +64,7 @@ async def simulation_loop():
             # With block opens the connection and automatically closes it when not needed
             with db_context() as db:
                 simulate_step(db)
-                update_all_seats(db)
+                await update_all_seats(db)
                 await broadcast_state(db)
 
         except Exception as e:
