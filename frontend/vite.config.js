@@ -8,4 +8,21 @@ export default defineConfig({
     react(),
     babel({ presets: [reactCompilerPreset()] })
   ],
+  // for hot module replacements
+  server: {
+    host: true, 
+    port: 5173,
+    watch: {
+      usePolling: true, 
+    },
+    hmr: {
+      clientPort: 5173, 
+    },
+  },
+  // for absolute paths
+  resolve: {
+    alias: {
+      src: "/src",
+    },
+  },
 })

@@ -13,3 +13,7 @@ class SimulationStatus(str, Enum):
 class SimulationResponse(BaseModel):
     status: SimulationStatus
     message: str
+
+class SeedRequest(BaseModel):
+    peopleTotal: int
+    tablesTotal: int

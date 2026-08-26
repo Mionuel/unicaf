@@ -6,18 +6,14 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api.controller.person_controller import subtract_credits
 from api.model.seat_model import SeatResponse, SeatStatus
-from api.view.seat_view import seat_by_id, filter_seats, occupy_seat_sql, free_seat_sql, random_occupied_seat, unoccupied_seats
+from api.view.seat_view import seat_by_id, filter_seats, occupy_seat_sql, free_seat_sql, random_occupied_seat, unoccupied_seats, all_seats
 
 from config.db_config import get_db
 import structlog
 
 _LOGGER = structlog.get_logger()
 
-OCCUPY_SECONDS_MIN = 10
-OCCUPY_SECONDS_VARIANCE = 5
-OCCUPY_SECONDS_SNACK = 10
-
-ORDER_COST = 10.0
+from config.app_config import app_settings
 
 router = APIRouter(
     prefix="/seat",
@@ -128,13 +124,13 @@ def occupy_seat_now(seat_id: int, person_id: int, db) -> SeatResponse:
         )
         raise ValueError("Seat is not free")
 
-    bonus_snack = subtract_credits(person_id, ORDER_COST, db)
+    bonus_snack = subtract_credits(person_id, app_settings.order_cost, db)
 
-    occupy_seconds = OCCUPY_SECONDS_MIN + random.randint(0, OCCUPY_SECONDS_VARIANCE)
+    occupy_seconds = app_settings.occupy_seconds_min + random.randint(0, app_settings.occupy_seconds_variance)
     
     if bonus_snack:
         temp = occupy_seconds
-        occupy_seconds += OCCUPY_SECONDS_SNACK
+        occupy_seconds += app_settings.occupy_seconds_snack
         _LOGGER.info(
             "bonus_snack_assigned",
             to_person_id=person_id,
@@ -194,7 +190,7 @@ def free_seat(seat_id: int, db=Depends(get_db)):
             "seat_freed",
             seat_id=seat.id,
             old_status=seat.status,
-            new_status=result.status
+            new_status=seat.status
         )
 
         return result
@@ -231,3 +227,12 @@ def fetch_free_seats(db) -> List[int] | None:
 
     # converts the dictionaries into a list of ids
     return [row["id"] for row in rows]
+
+def fetch_all_seats(db) -> List[SeatResponse]:
+    rows = db.execute(
+        all_seats
+    ).fetchall()
+
+    seats = [SeatResponse.model_validate(row) for row in rows]
+
+    return seats

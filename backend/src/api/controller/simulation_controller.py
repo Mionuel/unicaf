@@ -100,9 +100,11 @@ def update_all_seats(db) -> List[SeatResponse] | None:
 
     # handle the unoccupied seats
     free_seat_ids = fetch_free_seats(db) or []
-    for seat_id in free_seat_ids:
-        # update_seat will attempt to dequeue a person
-        update_seat(seat_id, db)
+
+    if free_seat_ids:
+        # if there are free seats => randomly select one of them
+        random_seat_id = random.choice(free_seat_ids)
+        update_seat(random_seat_id, db)
 
     total_updated = len(expired_seats)
 
@@ -122,6 +124,7 @@ def update(db=Depends(get_db)):
         raise HTTPException(status_code=400, detail=str(e))
 
 
+# TODO: introduce people_per_second variable
 def simulate_step(db):
     person_id = fetch_random_person(db)
     seat_id = fetch_random_occupied_seat(db)

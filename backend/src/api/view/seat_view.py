@@ -90,3 +90,8 @@ unoccupied_seats = """
     FROM "Seat" 
     WHERE status = 'free';
 """
+
+all_seats = """
+    SELECT *
+    FROM "Seat";
+"""

@@ -26,3 +26,8 @@ person_already_in_queue = """
     FROM "QueueEntry" 
     WHERE person_id = %s
 """
+
+queue_count_sql = """
+    SELECT COUNT(*) 
+    FROM "QueueEntry";
+"""
