@@ -23,3 +23,8 @@ export async function freeSeat(seatId) {
   const res = await api.put(`/seat/free/${seatId}`);
   return res.data;
 }
+
+export async function fetchAverageWaitTime() {
+  const res = await api.get("/queue/average-wait");
+  return res.data;
+}

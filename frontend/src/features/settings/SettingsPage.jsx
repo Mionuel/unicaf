@@ -9,7 +9,7 @@ import {
 
 function SettingsPage() {
   const [simSettings, setSimSettings] = useState({
-    simulation_interval: 0.2,
+    simulation_interval: 0.1,
     update_delay: 0.2,
     max_queue_size: 50,
     occupy_seconds_min: 50,
