@@ -9,7 +9,7 @@ from api.controller.person_controller import router as people_router
 from api.controller.table_contoller import router as table_router
 from api.controller.seat_controller import router as seat_router
 from api.controller.reservation_controller import router as reservation_router
-from api.controller.queue_controller import router as queue_router
+from api.controller.queue_controller import clear_queue_now, router as queue_router
 from api.controller.simulation_controller import router as state_router
 from api.controller.socket_controller import broadcast_state, router as socket_router
 
@@ -102,7 +102,7 @@ async def start_simulation():
     return response
 
 @app.post("/stop")
-async def stop_simulation():
+async def stop_simulation(db=Depends(get_db)):
     global IS_SIMULATION_RUNNING
 
     response = SimulationResponse(
@@ -114,6 +114,8 @@ async def stop_simulation():
         response.message="Simulation is already stopped"
     
     IS_SIMULATION_RUNNING = False
+
+    clear_queue_now(db)
     
     _LOGGER.info(
         "simulation_stopped"

@@ -12,7 +12,8 @@ from api.view.queue_view import (
     queue_entries_sql, 
     person_already_in_queue, 
     queue_count_sql,
-    average_wait_time_sql
+    average_wait_time_sql,
+    clear_queue_sql
 )
 
 router = APIRouter(
@@ -132,3 +133,16 @@ def average_wait_time(db=Depends(get_db)):
     )
 
     return avg_wait_seconds
+
+# Business logic to clear the queue
+def clear_queue_now(db):
+    db.execute(clear_queue_sql)
+    db.commit()
+    
+    _LOGGER.info("queue_cleared")
+
+@router.delete("/clear")
+def clear_queue(db=Depends(get_db)):
+    """Deletes all entries from the queue"""
+    clear_queue_now(db)
+    return

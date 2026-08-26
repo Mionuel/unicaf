@@ -36,3 +36,7 @@ average_wait_time_sql = """
     SELECT COALESCE(AVG(EXTRACT(EPOCH FROM (now() - joined_at))), 0.0) AS avg_wait_seconds
     FROM "QueueEntry";
 """
+
+clear_queue_sql = """
+    DELETE FROM "QueueEntry";
+"""
