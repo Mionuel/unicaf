@@ -17,10 +17,11 @@ function SettingsPage() {
     occupy_seconds_snack: 10,
     order_cost: 10.0,
     bonus_threshold: 5,
+    people_per_second: 10.0,
   });
 
   const [seedSettings, setSeedSettings] = useState({
-    peopleTotal: 1000,
+    peopleTotal: 10000,
     tablesTotal: 20,
   });
 
@@ -66,6 +67,14 @@ function SettingsPage() {
 
         <Stack direction="column" sx={{ maxWidth: 300 }} spacing={2}>
           <Stack direction="row" spacing={2}>
+            <NumberField
+              type="number"
+              label="People per Second"
+              min={0.000001}
+              step={0.5}
+              value={simSettings.people_per_second}
+              onChange={handleSimChange("people_per_second")}
+            />
             <NumberField
               type="number"
               label="Tick Interval (sec)"
@@ -155,7 +164,7 @@ function SettingsPage() {
               type="number"
               label="Total People"
               min={100}
-              max={10000}
+              max={100000}
               value={seedSettings.peopleTotal}
               onChange={handleSeedChange("peopleTotal")}
             />
