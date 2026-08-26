@@ -14,6 +14,7 @@ from api.controller.person_controller import fetch_random_person
 from api.view.seat_view import free_expired_seats_sql
 from api.model.simulation_model import SimulationAction
 from config.db_config import get_db
+from config.app_config import app_settings
 
 import structlog
 
@@ -98,7 +99,7 @@ async def update_all_seats(db) -> List[SeatResponse] | None:
     # broadcasts the current state and adds 0.2s of delay, which makes it perceivable front-end side
     if expired_seats:
         await broadcast_state(db)
-        await asyncio.sleep(0.2)
+        await asyncio.sleep(app_settings.update_delay)
 
     # update the state of each seat according to 
     for seat in expired_seats:
@@ -110,7 +111,7 @@ async def update_all_seats(db) -> List[SeatResponse] | None:
     if free_seat_ids:
         # adds a 0.2s of delay for the kick-out feature
         await broadcast_state(db)
-        await asyncio.sleep(0.2)
+        await asyncio.sleep(app_settings.update_delay)
 
         # if there are free seats => randomly select one of them
         random_seat_id = random.choice(free_seat_ids)

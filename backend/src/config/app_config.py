@@ -16,5 +16,8 @@ class SimulationSettings(BaseModel):
     # person_controller.py
     bonus_threshold: int = 5
 
+    # simulation_controller.py
+    update_delay: float = 0.2
+
 # Global instance of settings
 app_settings = SimulationSettings()

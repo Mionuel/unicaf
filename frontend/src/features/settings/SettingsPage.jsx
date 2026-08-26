@@ -10,6 +10,7 @@ import {
 function SettingsPage() {
   const [simSettings, setSimSettings] = useState({
     simulation_interval: 0.2,
+    update_delay: 0.2,
     max_queue_size: 50,
     occupy_seconds_min: 50,
     occupy_seconds_variance: 5,
@@ -68,10 +69,18 @@ function SettingsPage() {
             <NumberField
               type="number"
               label="Tick Interval (sec)"
-              min={0.1}
+              min={0.0001}
               step={0.1}
               value={simSettings.simulation_interval}
               onChange={handleSimChange("simulation_interval")}
+            />
+            <NumberField
+              type="number"
+              label="Update Delay (sec)"
+              min={0.0001}
+              step={0.1}
+              value={simSettings.simulation_interval}
+              onChange={handleSimChange("update_delay")}
             />
             <NumberField
               type="number"
