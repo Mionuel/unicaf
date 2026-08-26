@@ -6,7 +6,14 @@ from psycopg import Connection
 from config.db_config import get_db
 
 from api.model.queue_model import QueueEntry
-from api.view.queue_view import enqueue_sql, dequeue_sql, queue_entries_sql, person_already_in_queue, queue_count_sql
+from api.view.queue_view import (
+    enqueue_sql, 
+    dequeue_sql, 
+    queue_entries_sql, 
+    person_already_in_queue, 
+    queue_count_sql,
+    average_wait_time_sql
+)
 
 router = APIRouter(
     prefix="/queue",
@@ -109,3 +116,19 @@ def list_queue(db=Depends(get_db)):
     )
 
     return entries
+
+@router.get("/average-wait", response_model=float)
+def average_wait_time(db=Depends(get_db)):
+    """Fetches the average waiting time (in seconds) of the people currently in the queue"""
+    row = db.execute(
+        average_wait_time_sql
+    ).fetchone()
+
+    avg_wait_seconds = float(row["avg_wait_seconds"])
+
+    _LOGGER.info(
+        "fetched_average_wait_time",
+        avg_wait_seconds=avg_wait_seconds
+    )
+
+    return avg_wait_seconds
