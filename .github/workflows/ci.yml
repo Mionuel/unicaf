@@ -8,6 +8,34 @@ on:
     branches: [ "main" ]
 
 jobs:
+  # backend linting check
+  backend:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - name: Run Ruff
+          uses: chartboost/ruff-action@v1
+          with: # passes this path as argument to Ruff
+            src: "./backend/src"
+
+  # frontend linting check
+  frontend:
+      runs-on: ubuntu-latest
+      defaults:
+        run:
+          # switches the dir to ./frontend
+          working-directory: ./frontend
+      steps:
+        - uses: actions/checkout@v4
+        - name: Node setup
+          uses: actions/setup-node@v4
+          with:
+            node-version: '26'
+        - name: Deps
+          run: npm ci
+        - name: ESLint
+          run: npm run lint
+
   docker-build:
     runs-on: ubuntu-latest
     steps:
