@@ -109,6 +109,8 @@ In the **db** directory you will find:
 2. The names and surnames text files from based on which the generated people will be named
 3. seed.py script that populates the DB with data
 
+The endpoints documentation in graphical format can be found here: http://localhost:8000/docs#/
+
 ## Frontend
 
 The frontend follows the **features** project structure - each feature has a set of directories realted to it (components, services, helpers, costants, etc.)
