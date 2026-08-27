@@ -9,14 +9,14 @@ from api.controller.person_controller import router as people_router
 from api.controller.table_contoller import router as table_router
 from api.controller.seat_controller import router as seat_router
 from api.controller.reservation_controller import router as reservation_router
-from api.controller.queue_controller import router as queue_router
+from api.controller.queue_controller import clear_queue_now, router as queue_router
 from api.controller.simulation_controller import router as state_router
 from api.controller.socket_controller import broadcast_state, router as socket_router
 
 from config.db_config import get_db
 from config.logging_config import setup_logging
 
-from api.controller.simulation_controller import simulate_step, update_all_seats
+from api.controller.simulation_controller import simulate_person, update_all_seats
 from api.model.simulation_model import SeedRequest, SimulationResponse, SimulationStatus
 
 import structlog
@@ -54,6 +54,7 @@ IS_SIMULATION_RUNNING = False
 def home():
     return {"message": "Hello, UniCaf!"}
 
+# updates the seat states every simulation_interval seconds
 async def simulation_loop():
     global IS_SIMULATION_RUNNING
     
@@ -63,8 +64,8 @@ async def simulation_loop():
         try:
             # With block opens the connection and automatically closes it when not needed
             with db_context() as db:
-                simulate_step(db)
-                update_all_seats(db)
+                # simulate_step(db)
+                await update_all_seats(db)
                 await broadcast_state(db)
 
         except Exception as e:
@@ -75,6 +76,24 @@ async def simulation_loop():
 
         # Wait before next simulation step 
         await asyncio.sleep(app_settings.simulation_interval)
+
+# Simulates the people arriving to the caffeteria
+# decoupled from the simulation loop, so that state updates and arrival rates
+# can be separate things
+async def arrival_loop():
+    global IS_SIMULATION_RUNNING
+    
+    db_context = contextlib.contextmanager(get_db)
+    
+    while IS_SIMULATION_RUNNING:
+        with db_context() as db:
+            # simulate_person selects a random person and ads them to the queue / creates a reservation
+            simulate_person(db)
+        
+        # calculates sleep duration to match the arrival rate
+        # ex: rate = 0.5 => sleep_time = 1.0 / 0.5 = 2 s
+        sleep_time = 1.0 / app_settings.people_per_second
+        await asyncio.sleep(sleep_time)
 
 
 @app.post("/start")
@@ -93,7 +112,11 @@ async def start_simulation():
 
     IS_SIMULATION_RUNNING = True
 
+    # runs the simulation update loop
     asyncio.create_task(simulation_loop())
+
+    # simulates how often the people arrive
+    asyncio.create_task(arrival_loop())
     
     _LOGGER.info(
         "simulation_started"
@@ -102,7 +125,7 @@ async def start_simulation():
     return response
 
 @app.post("/stop")
-async def stop_simulation():
+async def stop_simulation(db=Depends(get_db)):
     global IS_SIMULATION_RUNNING
 
     response = SimulationResponse(
@@ -114,6 +137,8 @@ async def stop_simulation():
         response.message="Simulation is already stopped"
     
     IS_SIMULATION_RUNNING = False
+
+    clear_queue_now(db)
     
     _LOGGER.info(
         "simulation_stopped"

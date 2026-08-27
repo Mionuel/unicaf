@@ -9,17 +9,19 @@ import {
 
 function SettingsPage() {
   const [simSettings, setSimSettings] = useState({
-    simulation_interval: 0.2,
+    simulation_interval: 0.1,
+    update_delay: 0.2,
     max_queue_size: 50,
     occupy_seconds_min: 50,
     occupy_seconds_variance: 5,
     occupy_seconds_snack: 10,
     order_cost: 10.0,
     bonus_threshold: 5,
+    people_per_second: 10.0,
   });
 
   const [seedSettings, setSeedSettings] = useState({
-    peopleTotal: 1000,
+    peopleTotal: 10000,
     tablesTotal: 20,
   });
 
@@ -67,11 +69,27 @@ function SettingsPage() {
           <Stack direction="row" spacing={2}>
             <NumberField
               type="number"
+              label="People per Second"
+              min={0.000001}
+              step={0.5}
+              value={simSettings.people_per_second}
+              onChange={handleSimChange("people_per_second")}
+            />
+            <NumberField
+              type="number"
               label="Tick Interval (sec)"
-              min={0.1}
+              min={0.0001}
               step={0.1}
               value={simSettings.simulation_interval}
               onChange={handleSimChange("simulation_interval")}
+            />
+            <NumberField
+              type="number"
+              label="Update Delay (sec)"
+              min={0.0001}
+              step={0.1}
+              value={simSettings.update_delay}
+              onChange={handleSimChange("update_delay")}
             />
             <NumberField
               type="number"
@@ -146,7 +164,7 @@ function SettingsPage() {
               type="number"
               label="Total People"
               min={100}
-              max={10000}
+              max={100000}
               value={seedSettings.peopleTotal}
               onChange={handleSeedChange("peopleTotal")}
             />

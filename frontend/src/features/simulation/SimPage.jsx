@@ -6,6 +6,7 @@ import {
   stopSimulation,
 } from "src/features/simulation/services/sim_service";
 import HallView from "src/features/simulation/components/HallView";
+import WaitView from "src/features/simulation/components/WaitView";
 
 function SimPage() {
   const handleStart = async () => {
@@ -27,6 +28,7 @@ function SimPage() {
     >
       <SocketProvider>
         <Stack direction="column" spacing={6}>
+          <WaitView />
           <QueueView />
           <HallView />
         </Stack>

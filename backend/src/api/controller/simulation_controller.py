@@ -7,12 +7,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from api.controller.queue_controller import dequeue, enqueue_now
 from api.controller.reservation_controller import delete_reservation, fetch_reservation, reserve_seat_now
 from api.controller.seat_controller import fetch_free_seats, fetch_random_occupied_seat, occupy_seat_now
+from api.controller.socket_controller import broadcast_state
 from api.model.seat_model import SeatResponse
 from api.controller.person_controller import fetch_random_person
 
 from api.view.seat_view import free_expired_seats_sql
 from api.model.simulation_model import SimulationAction
 from config.db_config import get_db
+from config.app_config import app_settings
 
 import structlog
 
@@ -91,8 +93,13 @@ def update_seat(seat_id:int, db) -> None:
         update_seat(seat_id, db)
 
 # Looks up expired seats and calls update_seat on them
-def update_all_seats(db) -> List[SeatResponse] | None:
+async def update_all_seats(db) -> List[SeatResponse] | None:
     expired_seats = free_expired_seats(db) or []
+
+    # broadcasts the current state and adds 0.2s of delay, which makes it perceivable front-end side
+    if expired_seats:
+        await broadcast_state(db)
+        await asyncio.sleep(app_settings.update_delay)
 
     # update the state of each seat according to 
     for seat in expired_seats:
@@ -102,6 +109,10 @@ def update_all_seats(db) -> List[SeatResponse] | None:
     free_seat_ids = fetch_free_seats(db) or []
 
     if free_seat_ids:
+        # adds a 0.2s of delay for the kick-out feature
+        await broadcast_state(db)
+        await asyncio.sleep(app_settings.update_delay)
+
         # if there are free seats => randomly select one of them
         random_seat_id = random.choice(free_seat_ids)
         update_seat(random_seat_id, db)
@@ -124,8 +135,7 @@ def update(db=Depends(get_db)):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-# TODO: introduce people_per_second variable
-def simulate_step(db):
+def simulate_person(db):
     person_id = fetch_random_person(db)
     seat_id = fetch_random_occupied_seat(db)
 
